@@ -95,8 +95,26 @@ class Site(Document):
 				except:
 					pass
 
-	def add_app(self):
-		pass
+@frappe.whitelist()
+def get_installable_apps(doctype, docname):
+	app_list_file = 'apps.txt'
+	with open(app_list_file, "r") as f:
+		apps = f.read().split('\n')
+	installed_apps = frappe.get_doc(doctype, docname).app_list.split('\n')
+	installable_apps = set(apps) - set(installed_apps)
+	return [x for x in installable_apps]
 
-	def remove_app(self):
-		pass
+@frappe.whitelist()
+def get_removable_apps(doctype, docname):
+	return frappe.get_doc(doctype, docname).app_list.split('\n')
+
+@frappe.whitelist()
+def install_app(doctype, docname, app_name):
+	check_output("cd .. && bench --site "+frappe.get_doc(doctype, docname).site_name+" install-app "+app_name, shell=True)	
+	frappe.get_doc(doctype, docname).update_app_list()
+
+@frappe.whitelist()
+def remove_app(doctype, docname, app_name):
+	terminal = Popen("cd .. && bench --site "+frappe.get_doc(doctype, docname).site_name+" uninstall-app "+app_name, stdin=PIPE, shell=True)
+	terminal.communicate("y\n")
+	frappe.get_doc(doctype, docname).update_app_list()
