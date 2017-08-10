@@ -26,8 +26,11 @@ class Site(Document):
 
 	def validate(self):
 		if self.get("__islocal"):
-			self.create_site()		
+			if self.bypass_flag == 0:
+				self.create_site()
+			self.bypass_flag = 0
 			self.sync_site_config()
+			self.update_app_list()
 		else:
 			self.update_app_list()
 			self.update_site_config()
@@ -44,20 +47,22 @@ class Site(Document):
 				shell=True)
 
 	def on_trash(self):
-		site_list = check_output("ls", shell=True).split("\n")
-		if self.site_name in site_list:
-			check_output("cd .. && bench drop-site "+self.site_name,
-				shell=True)
-		else:
-			frappe.throw("Site: "+ self.site_name+ " doesn't exists! Please\
-				click sync to refresh your site list!")
-		return
+		if self.bypass_flag == 0:
+			site_list = check_output("ls", shell=True).split("\n")
+			if self.site_name in site_list:
+				check_output("cd .. && bench drop-site "+self.site_name,
+					shell=True)
+			else:
+				frappe.throw("Site: "+ self.site_name+ " doesn't exists! Please\
+					click sync to refresh your site list!")
+			return
 
 	def update_app_list(self):
 		self.app_list = '\n'.join(self.get_installed_apps())
 
 	def get_installed_apps(self):
-		terminal = Popen("cd .. && bench --site "+self.site_name+" console", stdout=PIPE, stdin=PIPE, shell=True)
+		terminal = Popen("cd .. && bench --site "+self.site_name+" console",
+			stdout=PIPE, stdin=PIPE, shell=True)
 		out, error = terminal.communicate("frappe.get_installed_apps()\nexit()")
 		out = out.split('\n')
 		return re.findall("u\'(.*?)\'", out[9])
@@ -65,8 +70,6 @@ class Site(Document):
 	def update_site_config(self):
 		site_config_path = self.site_name+'/site_config.json'
 		common_site_config_path = 'common_site_config.json'
-		with open(common_site_config_path, 'r') as f:
-			common_site_config_data = json.load(f)
 		with open(site_config_path, 'r') as f:
 			site_config_data = json.load(f)
 
@@ -78,22 +81,27 @@ class Site(Document):
 		    json.dump(site_config_data, f, indent=4)
 
 	def sync_site_config(self):
-		site_config_path = self.site_name+'/site_config.json'
-		common_site_config_path = 'common_site_config.json'
-		with open(common_site_config_path, 'r') as f:
-			common_site_config_data = json.load(f)
-			for site_config_field in self.site_config_fields:
-				try:
-					self.set_attr(site_config_field, common_site_config_data[site_config_field])
-				except:
-					pass
-		with open(site_config_path, 'r') as f:
-			site_config_data = json.load(f)
-			for site_config_field in self.site_config_fields:
-				try:
-					self.set_attr(site_config_field, site_config_data[site_config_field])
-				except:
-					pass
+		try:
+			site_config_path = self.site_name+'/site_config.json'
+			common_site_config_path = 'common_site_config.json'
+			with open(common_site_config_path, 'r') as f:
+				common_site_config_data = json.load(f)
+				for site_config_field in self.site_config_fields:
+					try:
+						self.set_attr(site_config_field, common_site_config_data[site_config_field])
+					except:
+						pass
+			with open(site_config_path, 'r') as f:
+				site_config_data = json.load(f)
+				for site_config_field in self.site_config_fields:
+					try:
+						self.set_attr(site_config_field, site_config_data[site_config_field])
+					except:
+						pass
+		except:
+			frappe.throw("Hey developer, the site you're trying to create an \
+				instance of doesn't actually exist. You could consider setting \
+				bypass flag to 0 to actually create the site")
 
 @frappe.whitelist()
 def get_installable_apps(doctype, docname):
