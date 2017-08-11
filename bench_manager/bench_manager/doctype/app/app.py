@@ -7,13 +7,18 @@ import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
 import sys
+import re
 
 class App(Document):
 	def validate(self):
 		if self.get("__islocal"):
-			self.create_app()
-		else:
+			if self.bypass_flag == 0:
+				self.create_app()
+			self.bypass_flag = 0
 			self.update_app_details()
+		else:
+			if self.bypass_flag == 0:
+				self.update_app_details()
 
 	def create_app(self):
 		app_list = check_output("cd ../apps && ls",
@@ -40,11 +45,32 @@ class App(Document):
 					self.app_publisher + self.app_email + self.app_icon + 
 					self.app_color + self.app_license)
 				if self.app_title == None:
+					self.app_title = self.app_name
 					self.app_title = self.app_title.replace('-', ' ')
 					self.app_title = self.app_title.replace('_', ' ')
 
 	def on_trash(self):
-		frappe.throw('Not allowed!')
+		if self.bypass_flag == 0:
+			frappe.throw('Not allowed!')
 
 	def update_app_details(self):
-		pass
+		try:
+			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
+			with open(app_data_path, 'r') as f:
+				app_data = f.readlines()
+			for data in app_data:
+				if 'Version:' in data:
+					self.version = ''.join(re.findall('Version: (.*?)\\n', data))
+				elif 'Summary:' in data:
+					self.app_description = ''.join(re.findall('Summary: (.*?)\\n', data))
+				elif 'Author:' in data:
+					self.app_publisher = ''.join(re.findall('Author: (.*?)\\n', data))
+				elif 'Author-email:' in data:
+					self.app_email = ''.join(re.findall('Author-email: (.*?)\\n', data))
+			self.app_title = self.app_name
+			self.app_title = self.app_title.replace('-', ' ')
+			self.app_title = self.app_title.replace('_', ' ')
+		except:
+			frappe.throw("Hey developer, the app you're trying to create an \
+				instance of doesn't actually exist. You could consider setting \
+				bypass flag to 0 to actually create the app")

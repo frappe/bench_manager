@@ -59,7 +59,25 @@ def sync_sites(doctype):
 
 @frappe.whitelist()
 def sync_apps(doctype):
-	frappe.msgprint('in python sync_apps')
+	app_dirs = update_app_list()
+	app_entries = [x['name'] for x in frappe.get_all('App')]
+	create_apps = list(set(app_dirs) - set(app_entries))
+	delete_apps = list(set(app_entries) - set(app_dirs))
+	frappe.msgprint('Please be patitent while enries for these apps are created')
+	frappe.msgprint(create_apps)
+	for app in create_apps:
+		doc = frappe.get_doc({'doctype': 'App', 'app_name': app,
+			'app_description': 'lorem ipsum', 'app_publisher': 'lorem ipsum',
+			'app_email': 'lorem ipsum', 'bypass_flag':1})
+		doc.insert()
+	frappe.msgprint('Please be patitent while enries for these apps are deleted')
+	frappe.msgprint(delete_apps)
+	for app in delete_apps:
+		doc = frappe.get_doc('App', app)
+		doc.bypass_flag = 1
+		doc.save()
+		doc.delete()
+	frappe.msgprint('Done')
 
 def _bench_update(command, user):
 	terminal = Popen(command.split(), stdout=PIPE, cwd='..')
@@ -67,9 +85,6 @@ def _bench_update(command, user):
 		frappe.publish_realtime('terminal_output', c, user=user)
 
 def update_app_list():
-	return '\n'.join(get_available_apps())
-
-def get_available_apps():
 	app_list_file = 'apps.txt'
 	with open(app_list_file, "r") as f:
 		apps = f.read().split('\n')
