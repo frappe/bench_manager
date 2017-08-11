@@ -32,9 +32,10 @@ class Site(Document):
 			self.sync_site_config()
 			self.update_app_list()
 		else:
-			self.update_app_list()
-			self.update_site_config()
-			self.sync_site_config()
+			if self.bypass_flag == 0:
+				self.update_app_list()
+				self.update_site_config()
+				self.sync_site_config()
 
 	def create_site(self):
 		site_list = check_output("ls", shell=True).split("\n")
@@ -56,6 +57,8 @@ class Site(Document):
 				frappe.throw("Site: "+ self.site_name+ " doesn't exists! Please\
 					click sync to refresh your site list!")
 			return
+		else:
+			pass
 
 	def update_app_list(self):
 		self.app_list = '\n'.join(self.get_installed_apps())

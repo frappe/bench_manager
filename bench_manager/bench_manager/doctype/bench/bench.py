@@ -55,6 +55,7 @@ def sync_sites(doctype):
 		doc.bypass_flag = 1
 		doc.save()
 		doc.delete()
+	frappe.msgprint('Done')
 
 @frappe.whitelist()
 def sync_apps(doctype):
