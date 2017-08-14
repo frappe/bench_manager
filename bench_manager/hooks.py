@@ -4,7 +4,7 @@ from . import __version__ as app_version
 
 app_name = "bench_manager"
 app_title = "Bench Manager"
-app_publisher = "Frappé"
+app_publisher = "Frappe"
 app_description = "GUI for using bench commands "
 app_icon = "octicon octicon-file-directory"
 app_color = "grey"
