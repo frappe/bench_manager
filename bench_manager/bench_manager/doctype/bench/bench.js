@@ -2,11 +2,13 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Bench', {
-	refresh: function(frm) {
+	onload: function(frm) {
 		frappe._output_target = $('<pre class="console"><code></code></pre>')
 			.appendTo(frm.get_field('run_command_output').wrapper)
 			.find('code')
 			.get(0);
+	},
+	refresh: function(frm) {
 		frm.add_custom_button(__('Update'), () => {
 			frappe._output = '';
 			frappe._in_progress = false;
