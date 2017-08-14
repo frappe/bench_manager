@@ -44,15 +44,15 @@ class Site(Document):
 				likely there isn't a log of this site. Please click sync to\
 				refresh your site list!")
 		else:
-			check_output("cd .. && bench new-site "+self.site_name,
-				shell=True)
+			check_output("bench new-site "+self.site_name,
+				shell=True, cwd='..')
 
 	def on_trash(self):
 		if self.bypass_flag == 0:
 			site_list = check_output("ls", shell=True).split("\n")
 			if self.site_name in site_list:
-				check_output("cd .. && bench drop-site "+self.site_name,
-					shell=True)
+				check_output("bench drop-site "+self.site_name,
+					shell=True, cwd='..')
 			else:
 				frappe.throw("Site: "+ self.site_name+ " doesn't exists! Please\
 					click sync to refresh your site list!")
@@ -64,8 +64,8 @@ class Site(Document):
 		self.app_list = '\n'.join(self.get_installed_apps())
 
 	def get_installed_apps(self):
-		terminal = Popen("cd .. && bench --site "+self.site_name+" console",
-			stdout=PIPE, stdin=PIPE, shell=True)
+		terminal = Popen("bench --site "+self.site_name+" console",
+			stdout=PIPE, stdin=PIPE, shell=True, cwd='..')
 		out, error = terminal.communicate("frappe.get_installed_apps()\nexit()")
 		out = out.split('\n')
 		return re.findall("u\'(.*?)\'", out[9])
@@ -121,11 +121,32 @@ def get_removable_apps(doctype, docname):
 
 @frappe.whitelist()
 def install_app(doctype, docname, app_name):
-	check_output("cd .. && bench --site "+frappe.get_doc(doctype, docname).site_name+" install-app "+app_name, shell=True)	
+	check_output("bench --site "+frappe.get_doc(doctype, docname).site_name+" install-app "+app_name, shell=True, cwd='..')	
 	frappe.get_doc(doctype, docname).update_app_list()
 
 @frappe.whitelist()
 def remove_app(doctype, docname, app_name):
-	terminal = Popen("cd .. && bench --site "+frappe.get_doc(doctype, docname).site_name+" uninstall-app "+app_name, stdin=PIPE, shell=True)
+	terminal = Popen("bench --site "+frappe.get_doc(doctype, docname).site_name+" uninstall-app "+app_name, stdin=PIPE, shell=True, cwd='..')
 	terminal.communicate("y\n")
 	frappe.get_doc(doctype, docname).update_app_list()
+
+@frappe.whitelist()
+def backup_site(doctype, docname):
+	terminal = check_output("bench --site "+frappe.get_doc(doctype, docname).site_name+" backup --with-files", shell=True, cwd='..')
+	return str(terminal)
+
+@frappe.whitelist()
+def restore_options(doctype, docname):
+	site_list = []
+	for root, dirs, files in os.walk(".", topdown=True):
+		for name in files:
+			if name == 'site_config.json':
+				site_list.append(str(root).strip('./'))
+				break
+	site_list.remove('')
+	self.site_list = '\n'.join(site_list)
+
+@frappe.whitelist()
+def restore_backup(doctype, docname):
+	terminal = check_output("bench --site "+frappe.get_doc(doctype, docname).site_name+" --force restore "+"archive name", shell=True, cwd='..')
+	return str(terminal)
