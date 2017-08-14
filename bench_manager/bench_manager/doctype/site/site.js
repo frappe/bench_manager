@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Site', {
 	refresh: function(frm) {
-		frm.add_custom_button(__('Install app'), function(){
+		frm.add_custom_button(__('Install App'), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.get_installable_apps',
 				args: {
@@ -36,7 +36,7 @@ frappe.ui.form.on('Site', {
 				}
 			});
 		});
-		frm.add_custom_button(__('Uninstall app'), function(){
+		frm.add_custom_button(__('Uninstall App'), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.get_removable_apps',
 				args: {
