@@ -16,7 +16,7 @@ setup(
 	name='bench_manager',
 	version=version,
 	description='GUI for using bench commands ',
-	author='Frappé',
+	author='Frappe',
 	author_email='info@frappe.io',
 	packages=find_packages(),
 	zip_safe=False,
