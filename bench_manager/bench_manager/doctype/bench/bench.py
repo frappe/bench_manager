@@ -29,7 +29,8 @@ class Bench(Document):
 				if name == 'site_config.json':
 					site_list.append(str(root).strip('./'))
 					break
-		site_list.remove('')
+		if '' in site_list:
+			site_list.remove('')
 		self.site_list = '\n'.join(site_list)
 
 @frappe.whitelist()
@@ -97,5 +98,6 @@ def update_site_list():
 			if name == 'site_config.json':
 				site_list.append(str(root).strip('./'))
 				break
-	site_list.remove('')
+	if '' in site_list:
+		site_list.remove('')
 	return site_list

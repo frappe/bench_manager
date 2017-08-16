@@ -137,16 +137,93 @@ def backup_site(doctype, docname):
 
 @frappe.whitelist()
 def restore_options(doctype, docname):
-	site_list = []
-	for root, dirs, files in os.walk(".", topdown=True):
-		for name in files:
-			if name == 'site_config.json':
-				site_list.append(str(root).strip('./'))
-				break
-	site_list.remove('')
-	self.site_list = '\n'.join(site_list)
+	all_sites = []
+	archived_sites = []
+	sites = []
+	for root, dirs, files in os.walk("../archived_sites/", topdown=True):
+		archived_sites.extend(dirs)
+		break
+	archived_sites = ["../archived_sites/"+x for x in archived_sites]
+	all_sites.extend(archived_sites)
+	for root, dirs, files in os.walk("../sites/", topdown=True):
+		for site in dirs:
+			files_list = check_output("cd ../sites/"+site+" && ls", shell=True).split("\n")
+			if 'site_config.json' in files_list:
+				sites.append(site)
+		break
+	sites = ["../sites/"+x for x in sites]
+	all_sites.extend(sites)
+
+
+	response = []
+
+	backups = []
+	for site in all_sites:
+		backup_path = os.path.join(site, "private", "backups")
+		backup_files = check_output("cd "+backup_path+" && ls *database.sql*", shell=True).strip('\n').split('\n')
+		for backup_file in backup_files:
+			inner_response = {}
+			date_time_hash = backup_file.rsplit('_', 1)[0]
+			inner_response['path'] = backup_path
+			inner_response['site_name'] = site.split('/')[2]
+			inner_response['location'] = site.split('/')[1]
+			inner_response['date'] = get_date(date_time_hash)
+			inner_response['time'] = get_time(date_time_hash)
+			inner_response['hash'] = get_hash(date_time_hash)
+			inner_response['public_files'] = os.path.isfile(backup_path+'/'+date_time_hash+"_files.tar")
+			inner_response['private_files'] = os.path.isfile(backup_path+'/'+date_time_hash+"_private_files.tar")
+			response.append(inner_response)
+	return response
+
+def get_date(date_time_hash):
+	months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+	date = int(date_time_hash.split('_')[0])
+	return str(date % 100) + ' ' +str(months[(date/100)%100 - 1]) + ' ' + str(date / 10000)
+
+def get_time(date_time_hash):
+	time = date_time_hash.split('_')[1]
+	return time[0:2]+':'+time[2:4]+':'+time[4:6]
+
+def get_hash(date_time_hash):
+	return date_time_hash.split('_')[2]
+
 
 @frappe.whitelist()
-def restore_backup(doctype, docname):
-	terminal = check_output("bench --site "+frappe.get_doc(doctype, docname).site_name+" --force restore "+"archive name", shell=True, cwd='..')
+def restore_backup(doctype, docname, backup_name, with_public_files, with_private_files):
+	backup_vars = backup_name.split(' * ')
+	file_path = ''
+	if backup_vars[3] == '(archived_sites)':
+		file_path += 'archived_sites/'
+	else:
+		file_path += 'sites/'
+	file_path += backup_vars[0]+'/private/backups/'
+	file_path += revert_date(backup_vars[1])+'_'+revert_time(backup_vars[2])+'_'+revert_hash(backup_vars[4])
+	sql_file_path = file_path+'_database.s*'
+	public_tar_path = file_path+'_files.tar'
+	private_tar_path = file_path+'_private_files.tar'
+	
+	str_to_exec = "bench --site "+frappe.get_doc(doctype, docname).site_name+" --force restore " + sql_file_path
+	if os.path.isfile(public_tar_path) and with_public_files == 'true':
+		str_to_exec += " --with-public-files " + public_tar_path
+	if os.path.isfile(private_tar_path) and with_private_files == 'true':
+		str_to_exec += " --with-private-files " + private_tar_path
+	
+	terminal = check_output(str_to_exec, shell=True, cwd='..')
 	return str(terminal)
+
+def revert_date(date):
+	months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+	date = date.split(' ')
+	if months.index(date[1]) < 10:
+		mid = '0'+str(months.index(date[1]) + 1)
+	else:
+		mid = str(months.index(date[1]) + 1)
+	return str(date[2]+mid+date[0])
+
+def revert_time(time):
+	time = time.strip('hrs').split(':')
+	new_time = ''.join(time)
+	return new_time
+
+def revert_hash(hash):
+	return str(hash.strip("'"))

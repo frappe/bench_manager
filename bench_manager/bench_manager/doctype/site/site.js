@@ -25,9 +25,16 @@ frappe.ui.form.on('Site', {
 				},
 				btn: this,
 				callback: function(r) {
+					backups = []
+					r.message.forEach(function(backup){
+						backups.push(backup.site_name + ' * ' + backup.date + ' * ' + backup.time + 'hrs * ' +
+							'('+backup.location+') * \'' + backup.hash + '\'');
+					})
 					var d = new frappe.ui.Dialog({
 					    fields: [
-					        {'fieldname': 'restore_options', 'fieldtype': 'Select', options: r.message}
+					        {'fieldname': 'backup_options', 'fieldtype': 'Select', options: backups},
+					        {'fieldname': 'with_public_files', 'fieldtype': 'Check', label: __("With public files (if present)")},
+					        {'fieldname': 'with_private_files', 'fieldtype': 'Check', label: __("With private files (if present)")}
 					    ],
 					});
 					d.set_primary_action(__("Restore"), () => {
@@ -36,11 +43,14 @@ frappe.ui.form.on('Site', {
 							args: {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
-								backup_name: $('.input-with-feedback.form-control:visible').val()
+								backup_name: cur_dialog.fields_dict.backup_options.value,
+								with_public_files: cur_dialog.fields_dict.with_public_files.input.checked,
+								with_private_files: cur_dialog.fields_dict.with_private_files.input.checked
 							},
 							callback: function(){
 								d.hide();
 								frm.save();
+								frappe.msgprint('Done')
 							}
 						});
 
@@ -93,8 +103,8 @@ frappe.ui.form.on('Site', {
 				callback: function(r) {
 					var d = new frappe.ui.Dialog({
 					    fields: [
-					        {'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message}
-					    ],
+					        {'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message},
+						],
 					});
 					d.set_primary_action(__("Remove"), () => {
 						frappe.call({
