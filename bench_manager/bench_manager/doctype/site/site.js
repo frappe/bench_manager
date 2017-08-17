@@ -11,8 +11,8 @@ frappe.ui.form.on('Site', {
 					docname: frm.doc.name
 				},
 				btn: this,
-				callback: function(r) {
-					frappe.msgprint('Done')
+				callback: function() {
+					frappe.msgprint('Done');
 				}
 			});
 		});
@@ -25,17 +25,17 @@ frappe.ui.form.on('Site', {
 				},
 				btn: this,
 				callback: function(r) {
-					backups = []
+					let backups = [];
 					r.message.forEach(function(backup){
 						backups.push(backup.site_name + ' * ' + backup.date + ' * ' + backup.time + 'hrs * ' +
 							'('+backup.location+') * \'' + backup.hash + '\'');
-					})
+					});
 					var d = new frappe.ui.Dialog({
-					    fields: [
-					        {'fieldname': 'backup_options', 'fieldtype': 'Select', options: backups},
-					        {'fieldname': 'with_public_files', 'fieldtype': 'Check', label: __("With public files (if present)")},
-					        {'fieldname': 'with_private_files', 'fieldtype': 'Check', label: __("With private files (if present)")}
-					    ],
+						fields: [
+							{'fieldname': 'backup_options', 'fieldtype': 'Select', options: backups},
+							{'fieldname': 'with_public_files', 'fieldtype': 'Check', label: __("With public files (if present)")},
+							{'fieldname': 'with_private_files', 'fieldtype': 'Check', label: __("With private files (if present)")}
+						],
 					});
 					d.set_primary_action(__("Restore"), () => {
 						frappe.call({
@@ -50,7 +50,7 @@ frappe.ui.form.on('Site', {
 							callback: function(){
 								d.hide();
 								frm.save();
-								frappe.msgprint('Done')
+								frappe.msgprint('Done');
 							}
 						});
 
@@ -69,9 +69,9 @@ frappe.ui.form.on('Site', {
 				btn: this,
 				callback: function(r) {
 					var d = new frappe.ui.Dialog({
-					    fields: [
-					        {'fieldname': 'installable_apps', 'fieldtype': 'Select', options: r.message}
-					    ],
+						fields: [
+							{'fieldname': 'installable_apps', 'fieldtype': 'Select', options: r.message}
+						],
 					});
 					d.set_primary_action(__("Install"), () => {
 						frappe.call({
@@ -102,8 +102,8 @@ frappe.ui.form.on('Site', {
 				btn: this,
 				callback: function(r) {
 					var d = new frappe.ui.Dialog({
-					    fields: [
-					        {'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message},
+						fields: [
+							{'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message},
 						],
 					});
 					d.set_primary_action(__("Remove"), () => {

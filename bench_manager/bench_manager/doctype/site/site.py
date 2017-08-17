@@ -154,7 +154,6 @@ def restore_options(doctype, docname):
 	sites = ["../sites/"+x for x in sites]
 	all_sites.extend(sites)
 
-
 	response = []
 
 	backups = []
@@ -164,7 +163,6 @@ def restore_options(doctype, docname):
 		for backup_file in backup_files:
 			inner_response = {}
 			date_time_hash = backup_file.rsplit('_', 1)[0]
-			inner_response['path'] = backup_path
 			inner_response['site_name'] = site.split('/')[2]
 			inner_response['location'] = site.split('/')[1]
 			inner_response['date'] = get_date(date_time_hash)

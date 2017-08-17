@@ -20,6 +20,14 @@ frappe.ui.form.on('Bench', {
 				}
 			})
 		});
+		frm.add_custom_button(__('Sync Backups'), () => {
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.bench.bench.sync_backups',
+				args: {
+					doctype: 'Backup'
+				}
+			})
+		});
 		frm.add_custom_button(__('Sync Sites'), () => {
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.bench.bench.sync_sites',
