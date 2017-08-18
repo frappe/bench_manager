@@ -17,13 +17,18 @@ class SiteBackup(Document):
 		if self.get("__islocal"):
 			if self.bypass_flag == 0:
 				frappe.throw("If you want to create a backup, then goto Sites")
-				
+			self.bypass_flag = 0
+
 	def on_trash(self):
-		check_output('rm ' + self.file_path + '_database.sql*', cwd='..')
-		if self.public_file_backup:
-			check_output('rm ' + self.file_path + '_files.tar', cwd='..')
-		if self.private_file_backup:
-			check_output('rm ' + self.file_path + '_private_files.tar', cwd='..')
+		if self.bypass_flag == 1:
+			check_output('rm ' + self.file_path + '_database.sql*', cwd='..')
+			if self.public_file_backup:
+				check_output('rm ' + self.file_path + '_files.tar', cwd='..')
+			if self.private_file_backup:
+				check_output('rm ' + self.file_path + '_private_files.tar', cwd='..')
+		else:
+			# frappe.msgprint('Are you sure you want to delete the backup!?')
+			pass
 
 
 @frappe.whitelist()
@@ -53,4 +58,3 @@ def restore_backup(doctype, docname, on_a_new_site, existing_site, new_site_name
 		if backup.private_file_backup:
 			str_to_exec += ' --with-private-files ../' + backup.file_path + '_private_files.tar'
 		terminal = check_output(str_to_exec, shell=True, cwd='..')
-	

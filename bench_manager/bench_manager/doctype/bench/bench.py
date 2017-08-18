@@ -162,20 +162,24 @@ def update_backup_list():
 	backups = []
 	for site in all_sites:
 		backup_path = os.path.join(site, "private", "backups")
-		backup_files = check_output("cd "+backup_path+" && ls *database.sql*", shell=True).strip('\n').split('\n')
-		for backup_file in backup_files:
-			inner_response = {}
-			date_time_hash = backup_file.rsplit('_', 1)[0]
-			file_path = backup_path+'/'+date_time_hash
-			inner_response['site_name'] = site.split('/')[2]
-			inner_response['date'] = get_date(date_time_hash)
-			inner_response['time'] = get_time(date_time_hash)
-			inner_response['stored_location'] = site.split('/')[1]
-			inner_response['private_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_private_files.tar")
-			inner_response['public_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_files.tar")
-			inner_response['hash'] = get_hash(date_time_hash)
-			inner_response['file_path'] = file_path[3:]
-			response.append(inner_response)
+		try:
+			backup_files = check_output("cd "+backup_path+" && ls *database.sql*", shell=True).strip('\n').split('\n')
+			for backup_file in backup_files:
+				inner_response = {}
+				date_time_hash = backup_file.rsplit('_', 1)[0]
+				file_path = backup_path+'/'+date_time_hash
+				inner_response['site_name'] = site.split('/')[2]
+				inner_response['date'] = get_date(date_time_hash)
+				inner_response['time'] = get_time(date_time_hash)
+				inner_response['stored_location'] = site.split('/')[1]
+				inner_response['private_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_private_files.tar")
+				inner_response['public_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_files.tar")
+				inner_response['hash'] = get_hash(date_time_hash)
+				inner_response['file_path'] = file_path[3:]
+				response.append(inner_response)
+		except:
+			pass
+			# frappe.msgprint('There are no backups to sync!')
 	return response
 
 def get_date(date_time_hash):
