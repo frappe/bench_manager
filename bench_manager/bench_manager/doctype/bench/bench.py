@@ -127,6 +127,7 @@ def sync_backups(doctype):
 			'public_file_backup': backup['public_file_backup'],
 			'private_file_backup': backup['private_file_backup'],
 			'hash': backup['hash'],
+			'file_path': backup['file_path'],
 			'bypass_flag': 1})
 		doc.insert()
 	frappe.msgprint('Please be patitent while enries for these sites are deleted')
@@ -165,13 +166,15 @@ def update_backup_list():
 		for backup_file in backup_files:
 			inner_response = {}
 			date_time_hash = backup_file.rsplit('_', 1)[0]
+			file_path = backup_path+'/'+date_time_hash
 			inner_response['site_name'] = site.split('/')[2]
 			inner_response['date'] = get_date(date_time_hash)
 			inner_response['time'] = get_time(date_time_hash)
 			inner_response['stored_location'] = site.split('/')[1]
-			inner_response['public_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_files.tar")
 			inner_response['private_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_private_files.tar")
+			inner_response['public_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_files.tar")
 			inner_response['hash'] = get_hash(date_time_hash)
+			inner_response['file_path'] = file_path[3:]
 			response.append(inner_response)
 	return response
 
@@ -186,3 +189,9 @@ def get_time(date_time_hash):
 
 def get_hash(date_time_hash):
 	return date_time_hash.split('_')[2]
+
+@frappe.whitelist()
+def sync_all():
+	sync_sites('Site')
+	sync_apps('App')
+	sync_backups('Site Backup')

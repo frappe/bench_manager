@@ -16,49 +16,49 @@ frappe.ui.form.on('Site', {
 				}
 			});
 		});
-		frm.add_custom_button(__('Restore Backup'), function(){
-			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.site.site.restore_options',
-				args: {
-					doctype: frm.doctype,
-					docname: frm.doc.name
-				},
-				btn: this,
-				callback: function(r) {
-					let backups = [];
-					r.message.forEach(function(backup){
-						backups.push(backup.site_name + ' * ' + backup.date + ' * ' + backup.time + 'hrs * ' +
-							'('+backup.location+') * \'' + backup.hash + '\'');
-					});
-					var d = new frappe.ui.Dialog({
-						fields: [
-							{'fieldname': 'backup_options', 'fieldtype': 'Select', options: backups},
-							{'fieldname': 'with_public_files', 'fieldtype': 'Check', label: __("With public files (if present)")},
-							{'fieldname': 'with_private_files', 'fieldtype': 'Check', label: __("With private files (if present)")}
-						],
-					});
-					d.set_primary_action(__("Restore"), () => {
-						frappe.call({
-							method: 'bench_manager.bench_manager.doctype.site.site.restore_backup',
-							args: {
-								doctype: frm.doctype,
-								docname: frm.doc.name,
-								backup_name: cur_dialog.fields_dict.backup_options.value,
-								with_public_files: cur_dialog.fields_dict.with_public_files.input.checked,
-								with_private_files: cur_dialog.fields_dict.with_private_files.input.checked
-							},
-							callback: function(){
-								d.hide();
-								frm.save();
-								frappe.msgprint('Done');
-							}
-						});
+		// frm.add_custom_button(__('Restore Backup'), function(){
+		// 	frappe.call({
+		// 		method: 'bench_manager.bench_manager.doctype.site.site.restore_options',
+		// 		args: {
+		// 			doctype: frm.doctype,
+		// 			docname: frm.doc.name
+		// 		},
+		// 		btn: this,
+		// 		callback: function(r) {
+		// 			let backups = [];
+		// 			r.message.forEach(function(backup){
+		// 				backups.push(backup.site_name + ' * ' + backup.date + ' * ' + backup.time + 'hrs * ' +
+		// 					'('+backup.location+') * \'' + backup.hash + '\'');
+		// 			});
+		// 			var d = new frappe.ui.Dialog({
+		// 				fields: [
+		// 					{'fieldname': 'backup_options', 'fieldtype': 'Select', options: backups},
+		// 					{'fieldname': 'with_public_files', 'fieldtype': 'Check', label: __("With public files (if present)")},
+		// 					{'fieldname': 'with_private_files', 'fieldtype': 'Check', label: __("With private files (if present)")}
+		// 				],
+		// 			});
+		// 			d.set_primary_action(__("Restore"), () => {
+		// 				frappe.call({
+		// 					method: 'bench_manager.bench_manager.doctype.site.site.restore_backup',
+		// 					args: {
+		// 						doctype: frm.doctype,
+		// 						docname: frm.doc.name,
+		// 						backup_name: cur_dialog.fields_dict.backup_options.value,
+		// 						with_public_files: cur_dialog.fields_dict.with_public_files.input.checked,
+		// 						with_private_files: cur_dialog.fields_dict.with_private_files.input.checked
+		// 					},
+		// 					callback: function(){
+		// 						d.hide();
+		// 						frm.save();
+		// 						frappe.msgprint('Done');
+		// 					}
+		// 				});
 
-					});
-					d.show();
-				}
-			});
-		});
+		// 			});
+		// 			d.show();
+		// 		}
+		// 	});
+		// });
 		frm.add_custom_button(__('Install App'), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.get_installable_apps',

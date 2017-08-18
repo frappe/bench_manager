@@ -37,7 +37,7 @@ frappe.ui.form.on('Site Backup', {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
 								on_a_new_site: cur_dialog.fields_dict.on_a_new_site.last_value,
-								existing_sites: cur_dialog.fields_dict.existing_sites.get_input_value(),
+								existing_site: cur_dialog.fields_dict.existing_sites.get_input_value(),
 								new_site_name: cur_dialog.fields_dict.new_site_name.get_input_value()
 							},
 							callback: function(){
