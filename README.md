@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/codingCoffee/bench_manager.png?label=ready&title=Ready)](https://waffle.io/codingCoffee/bench_manager?utm_source=badge)
 # Bench Manager
 
 Bench Manager is a graphical user interface to emulate the functionalities of Frappe Bench. Like the command line utility it helps you install apps, manage multiple sites, update apps and much more.
