@@ -9,29 +9,7 @@ import json, os
 from subprocess import check_output, Popen, PIPE
 
 class Bench(Document):
-	def validate(self):
-		self.update_app_list()
-		self.update_site_list()
-
-	def update_app_list(self):
-		self.app_list = '\n'.join(self.get_available_apps())
-
-	def get_available_apps(self):
-		app_list_file = 'apps.txt'
-		with open(app_list_file, "r") as f:
-			apps = f.read().split('\n')
-		return apps
-
-	def update_site_list(self):
-		site_list = []
-		for root, dirs, files in os.walk(".", topdown=True):
-			for name in files:
-				if name == 'site_config.json':
-					site_list.append(str(root).strip('./'))
-					break
-		if '' in site_list:
-			site_list.remove('')
-		self.site_list = '\n'.join(site_list)
+	pass
 
 @frappe.whitelist()
 def bench_update(command):
@@ -39,7 +17,7 @@ def bench_update(command):
 		command = command, user = frappe.session.user)
 
 @frappe.whitelist()
-def sync_sites(doctype):
+def sync_sites():
 	site_dirs = update_site_list()
 	site_entries = [x['name'] for x in frappe.get_all('Site')]
 	create_sites = list(set(site_dirs) - set(site_entries))
@@ -47,19 +25,19 @@ def sync_sites(doctype):
 	frappe.msgprint('Please be patitent while enries for these sites are created')
 	frappe.msgprint(create_sites)
 	for site in create_sites:
-		doc = frappe.get_doc({'doctype': 'Site', 'site_name': site, 'bypass_flag':1})
+		doc = frappe.get_doc({'doctype': 'Site', 'site_name': site, 'developer_flag':1})
 		doc.insert()
 	frappe.msgprint('Please be patitent while enries for these sites are deleted')
 	frappe.msgprint(delete_sites)
 	for site in delete_sites:
 		doc = frappe.get_doc('Site', site)
-		doc.bypass_flag = 1
+		doc.developer_flag = 1
 		doc.save()
 		doc.delete()
 	frappe.msgprint('Done')
 
 @frappe.whitelist()
-def sync_apps(doctype):
+def sync_apps():
 	app_dirs = update_app_list()
 	app_entries = [x['name'] for x in frappe.get_all('App')]
 	create_apps = list(set(app_dirs) - set(app_entries))
@@ -69,13 +47,13 @@ def sync_apps(doctype):
 	for app in create_apps:
 		doc = frappe.get_doc({'doctype': 'App', 'app_name': app,
 			'app_description': 'lorem ipsum', 'app_publisher': 'lorem ipsum',
-			'app_email': 'lorem ipsum', 'bypass_flag':1})
+			'app_email': 'lorem ipsum', 'developer_flag':1})
 		doc.insert()
 	frappe.msgprint('Please be patitent while enries for these apps are deleted')
 	frappe.msgprint(delete_apps)
 	for app in delete_apps:
 		doc = frappe.get_doc('App', app)
-		doc.bypass_flag = 1
+		doc.developer_flag = 1
 		doc.save()
 		doc.delete()
 	frappe.msgprint('Done')
@@ -103,7 +81,7 @@ def update_site_list():
 	return site_list
 
 @frappe.whitelist()
-def sync_backups(doctype):
+def sync_backups():
 	backup_dirs_data = update_backup_list()
 	backup_entries = [x['name'] for x in frappe.get_all('Site Backup')]
 	bakcup_dirs = [x['site_name']+' '+x['date']+' '+x['time']  for x in backup_dirs_data]
@@ -128,13 +106,13 @@ def sync_backups(doctype):
 			'private_file_backup': backup['private_file_backup'],
 			'hash': backup['hash'],
 			'file_path': backup['file_path'],
-			'bypass_flag': 1})
+			'developer_flag': 1})
 		doc.insert()
 	frappe.msgprint('Please be patitent while enries for these sites are deleted')
 	frappe.msgprint(delete_backups)
 	for backup in delete_backups:
 		doc = frappe.get_doc('Site Backup', backup)
-		doc.bypass_flag = 1
+		doc.developer_flag = 1
 		doc.save()
 		doc.delete()
 	frappe.msgprint('Done')
@@ -163,7 +141,8 @@ def update_backup_list():
 	for site in all_sites:
 		backup_path = os.path.join(site, "private", "backups")
 		try:
-			backup_files = check_output("cd "+backup_path+" && ls *database.sql*", shell=True).strip('\n').split('\n')
+			backup_files = check_output("cd "+backup_path+" && ls *database.sql*",
+				shell=True).strip('\n').split('\n')
 			for backup_file in backup_files:
 				inner_response = {}
 				date_time_hash = backup_file.rsplit('_', 1)[0]
@@ -172,8 +151,10 @@ def update_backup_list():
 				inner_response['date'] = get_date(date_time_hash)
 				inner_response['time'] = get_time(date_time_hash)
 				inner_response['stored_location'] = site.split('/')[1]
-				inner_response['private_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_private_files.tar")
-				inner_response['public_file_backup'] = os.path.isfile(backup_path+'/'+date_time_hash+"_files.tar")
+				inner_response['private_file_backup'] = os.path.isfile(backup_path+\
+					'/'+date_time_hash+"_private_files.tar")
+				inner_response['public_file_backup'] = os.path.isfile(backup_path+\
+					'/'+date_time_hash+"_files.tar")
 				inner_response['hash'] = get_hash(date_time_hash)
 				inner_response['file_path'] = file_path[3:]
 				response.append(inner_response)
@@ -183,9 +164,11 @@ def update_backup_list():
 	return response
 
 def get_date(date_time_hash):
-	months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+	months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+		'August', 'September', 'October', 'November', 'December']
 	date = int(date_time_hash.split('_')[0])
-	return str(date % 100) + ' ' +str(months[(date/100)%100 - 1]) + ' ' + str(date / 10000)
+	return str(date % 100) + ' ' +str(months[(date/100)%100 - 1]) + ' ' +\
+		str(date / 10000)
 
 def get_time(date_time_hash):
 	time = date_time_hash.split('_')[1]
@@ -196,6 +179,6 @@ def get_hash(date_time_hash):
 
 @frappe.whitelist()
 def sync_all():
-	sync_sites('Site')
-	sync_apps('App')
-	sync_backups('Site Backup')
+	sync_sites()
+	sync_apps()
+	sync_backups()

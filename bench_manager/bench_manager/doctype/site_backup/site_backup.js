@@ -26,7 +26,8 @@ frappe.ui.form.on('Site Backup', {
 									}
 								}
 							},
-							{fieldname: 'existing_sites', fieldtype: 'Select', options: r.message, label:__("Existing Sites")},
+							{fieldname: 'existing_sites', fieldtype: 'Select', options: r.message,
+								label:__("Existing Sites")},
 							{fieldname: 'new_site_name', fieldtype: 'Data', label:__("New Site Name")}
 						],
 					});

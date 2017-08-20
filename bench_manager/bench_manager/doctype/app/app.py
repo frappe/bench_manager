@@ -6,19 +6,27 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
-import sys
-import re
+import os, re
 
 class App(Document):
+	app_info_fields = ["app_title", "app_description", "app_publisher", "app_email",
+		"app_icon", "app_color", "app_license"]
+
 	def validate(self):
 		if self.get("__islocal"):
-			if self.bypass_flag == 0:
+			if self.developer_flag == 0:
 				self.create_app()
-			self.bypass_flag = 0
+			self.developer_flag = 0
 			self.update_app_details()
 		else:
-			if self.bypass_flag == 0:
+			if self.developer_flag == 0:
 				self.update_app_details()
+
+	def get_attr(self, varname):
+		return getattr(self, varname)
+
+	def set_attr(self, varname, varval):
+		return setattr(self, varname, varval)
 
 	def create_app(self):
 		app_list = check_output("cd ../apps && ls",
@@ -34,24 +42,39 @@ class App(Document):
 			else:
 				terminal = Popen("cd .. && bench new-app " + self.app_name,
 					stdin=PIPE, shell=True)
-				self.app_title = self.app_title + '\n'
-				self.app_description = self.app_description + '\n'
-				self.app_publisher = self.app_publisher + '\n' 
-				self.app_email = self.app_email + '\n'
-				self.app_icon = self.app_icon + '\n' if self.app_icon!=None else '\n'
-				self.app_color = self.app_color + '\n' if self.app_color!=None else '\n'
-				self.app_license = self.app_license + '\n' if self.app_license!=None else '\n'
-				terminal.communicate(self.app_title + self.app_description + 
-					self.app_publisher + self.app_email + self.app_icon + 
-					self.app_color + self.app_license)
+				str_to_exec = ''
+				for app_info_field in self.app_info_fields:
+					if self.get_attr(app_info_field) == None:
+						self.set_attr(app_info_field, '\n')
+					else:
+						self.set_attr(app_info_field, self.get_attr(app_info_field)+'\n')
+					str_to_exec += self.get_attr(app_info_field)
+				terminal.communicate(str_to_exec)
+				# terminal.communicate(self.app_title + self.app_description + 
+				# 	self.app_publisher + self.app_email + self.app_icon + 
+				# 	self.app_color + self.app_license)
 				if self.app_title == None:
 					self.app_title = self.app_name
 					self.app_title = self.app_title.replace('-', ' ')
 					self.app_title = self.app_title.replace('_', ' ')
+				frappe.msgprint('Done')
 
 	def on_trash(self):
-		if self.bypass_flag == 0:
+		if self.developer_flag == 0:
 			frappe.throw('Not allowed!')
+		else:
+			# todo: check if the app is linked to any site
+			apps_file = 'apps.txt'
+			with open(apps_file, 'r') as f:
+				apps = f.readlines()
+			try:
+				apps.remove(self.app_name)
+			except:
+				apps.remove(self.app_name+'\n')
+			os.remove(apps_file)
+			with open(apps_file, 'w') as f:
+			    f.writelines(apps)
+			terminal = check_output("rm -rf " + self.app_name, shell=True)
 
 	def update_app_details(self):
 		try:

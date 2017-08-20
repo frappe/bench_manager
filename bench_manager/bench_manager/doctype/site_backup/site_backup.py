@@ -15,21 +15,26 @@ class SiteBackup(Document):
 
 	def validate(self):
 		if self.get("__islocal"):
-			if self.bypass_flag == 0:
+			if self.developer_flag == 0:
 				frappe.throw("If you want to create a backup, then goto Sites")
-			self.bypass_flag = 0
+			self.developer_flag = 0
 
 	def on_trash(self):
-		if self.bypass_flag == 1:
-			check_output('rm ' + self.file_path + '_database.sql*', cwd='..')
-			if self.public_file_backup:
-				check_output('rm ' + self.file_path + '_files.tar', cwd='..')
-			if self.private_file_backup:
-				check_output('rm ' + self.file_path + '_private_files.tar', cwd='..')
+		if self.developer_flag == 1:
+			try:
+				check_output('rm ' + self.file_path + '_database.sql*',
+					shell=True, cwd='..')
+				if self.public_file_backup:
+					check_output('rm ' + self.file_path + '_files.tar',
+						shell=True, cwd='..')
+				if self.private_file_backup:
+					check_output('rm ' + self.file_path + '_private_files.tar',
+						shell=True, cwd='..')
+			except:
+				pass
+			frappe.msgprint('Backup deleted !')
 		else:
-			# frappe.msgprint('Are you sure you want to delete the backup!?')
-			pass
-
+			frappe.msgprint('Deleting the entry but not the Backup')
 
 @frappe.whitelist()
 def get_restore_options(doctype, docname):
