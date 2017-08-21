@@ -16,6 +16,20 @@ frappe.ui.form.on('Site', {
 				}
 			});
 		});
+		frm.add_custom_button(__('Reinstall'), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.reinstall',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name
+				},
+				btn: this,
+				callback: function() {
+					cur_frm.save()
+					frappe.msgprint('Done');
+				}
+			});
+		});
 		frm.add_custom_button(__('Backup Site'), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.backup_site',

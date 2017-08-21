@@ -147,3 +147,9 @@ def migrate(doctype, docname):
 	terminal = check_output("bench --site "+frappe.get_doc(doctype, docname).site_name \
 		+ " migrate", shell=True, cwd='..')
 	return str(terminal)
+
+@frappe.whitelist()
+def reinstall(doctype, docname):
+	terminal = check_output("bench --site "+frappe.get_doc(doctype, docname).site_name \
+		+ " reinstall --yes", shell=True, cwd='..')
+	return str(terminal)
