@@ -1,7 +1,7 @@
 [![Stories in Ready](https://badge.waffle.io/codingCoffee/bench_manager.png?label=ready&title=Ready)](https://waffle.io/codingCoffee/bench_manager?utm_source=badge)
 # Bench Manager
 
-Bench Manager is a graphical user interface to emulate the functionalities of Frappe Bench. Like the command line utility it helps you install apps, manage multiple sites, update apps and much more.
+Bench Manager is a graphical user interface to emulate the functionalities of Frappé Bench. Like the command line utility it helps you install apps, manage multiple sites, update apps and much more.
 
 ## Installation
 
@@ -42,6 +42,7 @@ There are 4 main doctypes associated with this app.
   1. Migrate
       * This button emulates the ```bench migrate``` command.
       * It applies schema changes and data migrations if any.
+      * Migrate should be run after you pull updates from any Frappé app.
   2. Backup Site 
       * This button backs up the site with all the files ie. it emulates ``` bench update ```
       * By default the sites are backed up with all the files
