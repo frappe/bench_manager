@@ -21,17 +21,14 @@ class SiteBackup(Document):
 
 	def on_trash(self):
 		if self.developer_flag == 1:
-			try:
-				check_output('rm ' + self.file_path + '_database.sql*',
+			check_output('rm ' + self.file_path + '_database.sql*',
+				shell=True, cwd='..')
+			if self.public_file_backup:
+				check_output('rm ' + self.file_path + '_files.tar',
 					shell=True, cwd='..')
-				if self.public_file_backup:
-					check_output('rm ' + self.file_path + '_files.tar',
-						shell=True, cwd='..')
-				if self.private_file_backup:
-					check_output('rm ' + self.file_path + '_private_files.tar',
-						shell=True, cwd='..')
-			except:
-				pass
+			if self.private_file_backup:
+				check_output('rm ' + self.file_path + '_private_files.tar',
+					shell=True, cwd='..')
 			frappe.msgprint('Backup deleted !')
 		else:
 			frappe.msgprint('Deleting the entry but not the Backup')

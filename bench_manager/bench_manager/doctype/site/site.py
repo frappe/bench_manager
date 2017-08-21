@@ -125,7 +125,7 @@ def get_removable_apps(doctype, docname):
 @frappe.whitelist()
 def install_app(doctype, docname, app_name):
 	check_output("bench --site "+frappe.get_doc(doctype, docname).site_name \
-		+ " install-app "+app_name, shell=True, cwd='..')	
+		+ " install-app "+app_name, shell=True, cwd='..')
 	frappe.get_doc(doctype, docname).update_app_list()
 
 @frappe.whitelist()

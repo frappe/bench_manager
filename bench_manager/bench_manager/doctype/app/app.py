@@ -49,14 +49,8 @@ class App(Document):
 					else:
 						self.set_attr(app_info_field, self.get_attr(app_info_field)+'\n')
 					str_to_exec += self.get_attr(app_info_field)
+
 				terminal.communicate(str_to_exec)
-				# terminal.communicate(self.app_title + self.app_description + 
-				# 	self.app_publisher + self.app_email + self.app_icon + 
-				# 	self.app_color + self.app_license)
-				if self.app_title == None:
-					self.app_title = self.app_name
-					self.app_title = self.app_title.replace('-', ' ')
-					self.app_title = self.app_title.replace('_', ' ')
 				frappe.msgprint('Done')
 
 	def on_trash(self):
@@ -74,7 +68,7 @@ class App(Document):
 			os.remove(apps_file)
 			with open(apps_file, 'w') as f:
 			    f.writelines(apps)
-			terminal = check_output("rm -rf " + self.app_name, shell=True)
+			check_output("rm -rf " + self.app_name, shell=True)
 
 	def update_app_details(self):
 		try:
