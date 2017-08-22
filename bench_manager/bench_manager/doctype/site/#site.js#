@@ -1,0 +1,164 @@
+// Copyright (c) 2017, FrappÃ© and contributors
+// For license information, please see license.txt
+
+key = frappe.utils.get_random(10);
+
+frappe.ui.form.on('Site', {
+	refresh: function(frm) {
+		frm.add_custom_button(__('Migrate'), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.migrate',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name
+				},
+				btn: this,
+				callback: function() {
+					frappe.msgprint('Done');
+				}
+			});
+		});
+		frm.add_custom_button(__('Reinstall'), function(){
+			// key = frappe.utils.get_random(10);
+			var dialog = new frappe.ui.Dialog({
+				title: "Console",
+				fields: [
+					{fieldname: 'console', fieldtype: 'HTML'},
+				]
+			});
+			frappe._output_target = $('<pre class="console"><code></code></pre>')
+				.appendTo(dialog.get_field('console').wrapper)
+				.find('code')
+				.get(0);
+			frappe._output = '';
+			frappe._in_progress = false;
+			frappe._output_target.innerHTML = '';
+			dialog.show()
+			dialog.$wrapper.find('.modal-dialog').css("width", "800px");
+			dialog.$wrapper.find('.modal-dialog').css("min-height", "800");
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.reinstall',
+				args: {
+					key: key,
+					doctype: frm.doctype,
+					docname: frm.doc.name
+				},
+				btn: this,
+			});
+		});
+		frm.add_custom_button(__('Backup Site'), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.backup_site',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name
+				},
+				btn: this,
+				callback: function() {
+					frappe.msgprint('Done');
+				}
+			});
+		});
+		frm.add_custom_button(__('Install App'), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.get_installable_apps',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name
+				},
+				btn: this,
+				callback: function(r) {
+					var dialog = new frappe.ui.Dialog({
+						title: 'Select App',
+						fields: [
+							{'fieldname': 'installable_apps', 'fieldtype': 'Select', options: r.message}
+						],
+					});
+					dialog.set_primary_action(__("Install"), () => {
+						frappe.call({
+							method: 'bench_manager.bench_manager.doctype.site.site.install_app',
+							args: {
+								doctype: frm.doctype,
+								docname: frm.doc.name,
+								app_name: cur_dialog.fields_dict.installable_apps.value
+							},
+							callback: function(){
+								dialog.hide();
+								frm.save();
+							}
+						});
+
+					});
+					dialog.show();
+				}
+			});
+		});
+		frm.add_custom_button(__('Uninstall App'), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.get_removable_apps',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name
+				},
+				btn: this,
+				callback: function(r) {
+					var dialog = new frappe.ui.Dialog({
+						title: 'Select App',
+						fields: [
+							{'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message},
+						],
+					});
+					dialog.set_primary_action(__("Remove"), () => {
+						frappe.call({
+							method: 'bench_manager.bench_manager.doctype.site.site.remove_app',
+							args: {
+								doctype: frm.doctype,
+								docname: frm.doc.name,
+								app_name: cur_dialog.fields_dict.removable_apps.value
+							},
+							callback: function(){
+								dialog.hide();
+								frm.save();
+							}
+
+						});
+
+					});
+					dialog.show();
+				}
+			});
+		});
+	}
+});
+
+frappe.realtime.on(key, function(output) {
+	if (output==='\r') {
+		// clear current line, means we are showing some kind of progress indicator
+		frappe._in_progress = true;
+		if(frappe._output_target.innerHTML != frappe._output) {
+			// progress updated... redraw
+			frappe._output_target.innerHTML = frappe._output;
+		}
+		frappe._output = frappe._output.split('\n').slice(0, -1).join('\n') + '\n';
+		return;
+	} else {
+		frappe._output += output;
+	}
+
+	 (output==='\n') {
+		frappe._in_progress = false;
+	}
+
+	if (frappe._in_progress) {
+		return;
+	}
+
+	if (!frappe._last_update) {
+		frappe._last_update = setTimeout(() => {
+			frappe._last_update = null;
+			if(!frappe.in_progress) {
+				frappe._output_target.innerHTML = frappe._output;
+			}
+		}, 200);
+	}
+});

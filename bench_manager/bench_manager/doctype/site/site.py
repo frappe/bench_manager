@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
 import os, re, json
 from  bench_manager.bench_manager.doctype.bench.bench import sync_backups
+# from  bench_manager.bench_manager.doctype.run_command.run_command import run_command
 
 class Site(Document):
 	site_config_fields = ["auto_update", "background_workers", "developer_mode",
@@ -123,33 +124,36 @@ def get_removable_apps(doctype, docname):
 	return removable_apps
 
 @frappe.whitelist()
-def install_app(doctype, docname, app_name):
-	check_output("bench --site "+frappe.get_doc(doctype, docname).site_name \
-		+ " install-app "+app_name, shell=True, cwd='..')
-	frappe.get_doc(doctype, docname).update_app_list()
+def install_app(doctype, docname, app_name, key):
+	str_to_exec = ["bench --site "+frappe.get_doc(doctype, docname).site_name \
+		+ " install-app "+app_name]
+	frappe.enqueue('bench_manager.bench_manager.doctype.run_command.run_command.run_command',
+		exec_str_list=str_to_exec, cwd='..', doctype=doctype, key=key, docname=docname)
 
 @frappe.whitelist()
-def remove_app(doctype, docname, app_name):
-	terminal = Popen("bench --site "+frappe.get_doc(doctype, docname).site_name \
-		+ " uninstall-app "+app_name, shell=True, stdin=PIPE, cwd='..')
-	terminal.communicate("y\n")
-	frappe.get_doc(doctype, docname).update_app_list()
+def remove_app(doctype, docname, app_name, key):
+	str_to_exec = ["bench --site "+frappe.get_doc(doctype, docname).site_name \
+		+ " uninstall-app "+app_name+" --yes"]
+	frappe.enqueue('bench_manager.bench_manager.doctype.run_command.run_command.run_command',
+		exec_str_list=str_to_exec, cwd='..', doctype=doctype, key=key, docname=docname)
 
 @frappe.whitelist()
-def backup_site(doctype, docname):
-	terminal = check_output("bench --site "+frappe.get_doc(doctype, docname).site_name \
-		+ " backup --with-files", shell=True, cwd='..')
-	sync_backups()
-	return str(terminal)
+def backup_site(doctype, docname, key):
+	str_to_exec = ["bench --site "+frappe.get_doc(doctype, docname).site_name \
+		+ " backup --with-files"]
+	frappe.enqueue('bench_manager.bench_manager.doctype.run_command.run_command.run_command',
+		exec_str_list=str_to_exec, cwd='..', doctype=doctype, key=key, docname=docname)
 
 @frappe.whitelist()
-def migrate(doctype, docname):
-	terminal = check_output("bench --site "+frappe.get_doc(doctype, docname).site_name \
-		+ " migrate", shell=True, cwd='..')
-	return str(terminal)
+def migrate(doctype, docname, key):
+	str_to_exec = ["bench --site "+frappe.get_doc(doctype, docname).site_name \
+		+ " migrate"]
+	frappe.enqueue('bench_manager.bench_manager.doctype.run_command.run_command.run_command',
+		exec_str_list=str_to_exec, cwd='..', doctype=doctype, key=key, docname=docname)
 
 @frappe.whitelist()
-def reinstall(doctype, docname):
-	terminal = check_output("bench --site "+frappe.get_doc(doctype, docname).site_name \
-		+ " reinstall --yes", shell=True, cwd='..')
-	return str(terminal)
+def reinstall(doctype, docname, key):
+	str_to_exec = ["bench --site "+frappe.get_doc(doctype, docname).site_name \
+		+ " reinstall --yes"]
+	frappe.enqueue('bench_manager.bench_manager.doctype.run_command.run_command.run_command',
+		exec_str_list=str_to_exec, cwd='..', doctype=doctype, key=key, docname=docname)

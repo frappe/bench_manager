@@ -16,7 +16,7 @@ app_license = "MIT"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/bench_manager/css/bench_manager.css"
-# app_include_js = "/assets/bench_manager/js/bench_manager.js"
+app_include_js = "/assets/bench_manager/js/bench_manager.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/bench_manager/css/bench_manager.css"
