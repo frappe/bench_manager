@@ -7,7 +7,7 @@ import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
 import os, re, json
-from  bench_manager.bench_manager.doctype.bench_setting.bench_setting import sync_backups
+# from  bench_manager.bench_manager.doctype.bench_setting.bench_setting import sync_backups
 
 class Site(Document):
 	site_config_fields = ["auto_update", "background_workers", "developer_mode",
@@ -63,11 +63,9 @@ class Site(Document):
 		self.app_list = '\n'.join(self.get_installed_apps())
 
 	def get_installed_apps(self):
-		terminal = Popen("bench --site "+self.site_name+" console",
-			stdout=PIPE, stdin=PIPE, shell=True, cwd='..')
-		out, error = terminal.communicate("frappe.get_installed_apps()\nexit()")
-		out = out.split('\n')
-		return re.findall("u\'(.*?)\'", out[9])
+		terminal = check_output("bench --site "+self.site_name+" list-apps",
+			shell=True, cwd='..')
+		return terminal.strip('\n').split('\n')
 
 	def update_site_config(self):
 		site_config_path = self.site_name+'/site_config.json'
