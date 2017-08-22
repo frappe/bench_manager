@@ -1,7 +1,7 @@
-// Copyright (c) 2017, Frappé and contributors
+// Copyright (c) 2017, Frappe and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on('Bench', {
+frappe.ui.form.on('Bench Setting', {
 	onload: function(frm) {
 		frappe._output_target = $('<pre class="console"><code></code></pre>')
 			.appendTo(frm.get_field('run_command_output').wrapper)
@@ -14,7 +14,7 @@ frappe.ui.form.on('Bench', {
 			frappe._in_progress = false;
 			frappe._output_target.innerHTML = '';
 			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.bench.bench.bench_update',
+				method: 'bench_manager.bench_manager.doctype.bench_setting.bench_setting.bench_update',
 				args: {
 					command: 'bench update'
 				}
@@ -22,17 +22,17 @@ frappe.ui.form.on('Bench', {
 		});
 		frm.add_custom_button(__('Sync Backups'), () => {
 			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.bench.bench.sync_backups'
+				method: 'bench_manager.bench_manager.doctype.bench_setting.bench_setting.sync_backups'
 			});
 		});
 		frm.add_custom_button(__('Sync Sites'), () => {
 			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.bench.bench.sync_sites'
+				method: 'bench_manager.bench_manager.doctype.bench_setting.bench_setting.sync_sites'
 			});
 		});
 		frm.add_custom_button(__('Sync Apps'), () => {
 			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.bench.bench.sync_apps'
+				method: 'bench_manager.bench_manager.doctype.bench_setting.bench_setting.sync_apps'
 			});
 		});
 	}

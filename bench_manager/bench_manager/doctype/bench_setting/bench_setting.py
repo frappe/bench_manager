@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2017, Frappé and contributors
+# Copyright (c) 2017, Frappe and contributors
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
@@ -8,12 +8,12 @@ from frappe.model.document import Document
 import json, os
 from subprocess import check_output, Popen, PIPE
 
-class Bench(Document):
+class BenchSetting(Document):
 	pass
 
 @frappe.whitelist()
 def bench_update(command):
-	frappe.enqueue('bench_manager.bench_manager.doctype.bench.bench._bench_update',
+	frappe.enqueue('bench_manager.bench_manager.doctype.bench_setting.bench_setting._bench_update',
 		command = command, user = frappe.session.user)
 
 @frappe.whitelist()

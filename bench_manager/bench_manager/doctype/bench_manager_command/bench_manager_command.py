@@ -8,7 +8,7 @@ from frappe.model.document import Document
 from frappe.model.naming import make_autoname
 from subprocess import check_output, Popen, PIPE
 
-class RunCommand(Document):
+class BenchManagerCommand(Document):
 	pass
 
 @frappe.whitelist()
@@ -25,7 +25,7 @@ def run_command(exec_str_list, cwd, doctype, key, docname=' '):
 			frappe.publish_realtime(key, c, user=frappe.session.user)
 			console_dump += c
 
-	doc = frappe.get_doc({'doctype': 'Run Command', 'source': doctype+': '+docname,
+	doc = frappe.get_doc({'doctype': 'Bench Manager Command', 'source': doctype+': '+docname,
 		 'command': '\n'.join(exec_str_list), 'console': console_dump})
 	doc.insert()
 

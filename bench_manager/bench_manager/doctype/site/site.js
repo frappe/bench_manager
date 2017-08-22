@@ -4,20 +4,21 @@
 frappe.ui.form.on('Site', {
 	refresh: function(frm) {
 		let single_function_buttons = {
-			'Migrate': 'bench_manager.bench_manager.doctype.site.site.migrate',
-			'Reinstall': 'bench_manager.bench_manager.doctype.site.site.reinstall',
-			'Backup Site': 'bench_manager.bench_manager.doctype.site.site.backup_site'
+			'Migrate': 'migrate',
+			'Reinstall': 'reinstall',
+			'Backup Site': 'backup_site'
 		};
-		for (let button_name in single_function_buttons){
-			frm.add_custom_button(__(button_name), function(){
+		for (let bench_command in single_function_buttons){
+			frm.add_custom_button(__(bench_command), function(){
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
 				frappe.call({
-					method: single_function_buttons[button_name],
+					method: 'bench_manager.bench_manager.doctype.site.site.console_command',
 					args: {
 						doctype: frm.doctype,
 						docname: frm.doc.name,
-						key: key
+						key: key,
+						bench_command: single_function_buttons[bench_command]
 					},
 					btn: this
 				});
@@ -58,12 +59,13 @@ frappe.ui.form.on('Site', {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
 						frappe.call({
-							method: 'bench_manager.bench_manager.doctype.site.site.install_app',
+							method: 'bench_manager.bench_manager.doctype.site.site.console_command',
 							args: {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
 								app_name: cur_dialog.fields_dict.installable_apps.value,
-								key: key
+								key: key,
+								bench_command: 'install_app'								
 							},
 							callback: function(){
 								dialog.hide();
@@ -93,12 +95,13 @@ frappe.ui.form.on('Site', {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
 						frappe.call({
-							method: 'bench_manager.bench_manager.doctype.site.site.remove_app',
+							method: 'bench_manager.bench_manager.doctype.site.site.console_command',
 							args: {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
 								app_name: cur_dialog.fields_dict.removable_apps.value,
-								key: key
+								key: key,
+								bench_command: 'remove_app'
 							},
 							callback: function(){
 								dialog.hide();
