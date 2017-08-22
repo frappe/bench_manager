@@ -13,7 +13,7 @@ frappe.ui.form.on('Site', {
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
 				frappe.call({
-					method: 'bench_manager.bench_manager.doctype.site.site.console_command',
+					method: 'bench_manager.bench_manager.utils.console_command',
 					args: {
 						doctype: frm.doctype,
 						docname: frm.doc.name,
@@ -59,7 +59,7 @@ frappe.ui.form.on('Site', {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
 						frappe.call({
-							method: 'bench_manager.bench_manager.doctype.site.site.console_command',
+							method: 'bench_manager.bench_manager.utils.console_command',
 							args: {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
@@ -95,7 +95,7 @@ frappe.ui.form.on('Site', {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
 						frappe.call({
-							method: 'bench_manager.bench_manager.doctype.site.site.console_command',
+							method: 'bench_manager.bench_manager.utils.console_command',
 							args: {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
