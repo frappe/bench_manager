@@ -11,22 +11,22 @@ from subprocess import check_output, Popen, PIPE
 class BenchManagerCommand(Document):
 	pass
 
-@frappe.whitelist()
-def run_command(exec_str_list, cwd, doctype, key, docname=' '):
-	exec_once = True
-	console_dump = ''
-	for str_to_exec in exec_str_list:
-		if exec_once:
-			terminal = Popen(str_to_exec.split(), stdin=PIPE, stdout=PIPE, cwd=cwd)
-			exec_once = False
-		else:
-			terminal = terminal.communicate(str_to_exec.split(), stdin=PIPE, stdout=PIPE, cwd=cwd)
-		for c in iter(lambda: terminal.stdout.read(1), ''):
-			frappe.publish_realtime(key, c, user=frappe.session.user)
-			console_dump += c
+# @frappe.whitelist()
+# def run_command(exec_str_list, cwd, doctype, key, docname=' '):
+# 	exec_once = True
+# 	console_dump = ''
+# 	for str_to_exec in exec_str_list:
+# 		if exec_once:
+# 			terminal = Popen(str_to_exec.split(), stdin=PIPE, stdout=PIPE, cwd=cwd)
+# 			exec_once = False
+# 		else:
+# 			terminal = terminal.communicate(str_to_exec.split(), stdin=PIPE, stdout=PIPE, cwd=cwd)
+# 		for c in iter(lambda: terminal.stdout.read(1), ''):
+# 			frappe.publish_realtime(key, c, user=frappe.session.user)
+# 			console_dump += c
 
-	doc = frappe.get_doc({'doctype': 'Bench Manager Command', 'source': doctype+': '+docname,
-		 'command': '\n'.join(exec_str_list), 'console': console_dump})
-	doc.insert()
+# 	doc = frappe.get_doc({'doctype': 'Bench Manager Command', 'source': doctype+': '+docname,
+# 		 'command': '\n'.join(exec_str_list), 'console': console_dump})
+# 	doc.insert()
 
-	return terminal
+# 	return terminal
