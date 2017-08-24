@@ -2,7 +2,26 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Site', {
+	validate: function(frm) {
+		if (frm.doc.db_name == undefined) {
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
+			frm.doc.key = key;
+		}
+	},
+	onload: function(frm) {
+		let site_config_fields = ["maintenance_mode", "pause_scheduler", "db_name", "db_password",
+			"developer_mode", "emails", "expiry", "space", "backup_size", "database_size", "files_size", "total"];
+		site_config_fields.forEach(function(val){
+			frm.toggle_display(val, frm.doc[val] != undefined);
+		});
+	},
 	refresh: function(frm) {
+		if (frm.doc.db_name == undefined) {
+			$('div.form-inner-toolbar').hide();
+		} else {
+			$('div.form-inner-toolbar').show();
+		}
 		let single_function_buttons = {
 			'Migrate': 'migrate',
 			'Reinstall': 'reinstall',

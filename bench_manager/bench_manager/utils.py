@@ -15,7 +15,9 @@ def console_command(doctype='', docname='', key='', bench_command='', app_name='
 		"backup_site": "bench --site "+ docname + " backup --with-files",
 		"migrate": "bench --site "+ docname + " migrate",
 		"reinstall": "bench --site "+ docname + " reinstall --yes",
-		"update": "bench update"
+		"update": "bench update",
+		"new-site": "bench new-site "+docname,
+		"drop-site": "bench drop-site "+docname
 	}
 	str_to_exec = [shell_commands[bench_command]]
 	frappe.enqueue('bench_manager.bench_manager.utils.run_command',
@@ -32,12 +34,13 @@ def run_command(exec_str_list, cwd, doctype, key, docname=' '):
 	frappe.db.commit()
 
 	doc = frappe.get_doc('Bench Manager Command', key)
+	print exec_str_list
 	for str_to_exec in exec_str_list:
 		if exec_once:
 			terminal = Popen(str_to_exec.split(), stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
 			exec_once = False
 		else:
-			terminal = terminal.communicate(str_to_exec.split(), stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
+			terminal = terminal.communicate(str_to_exec, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
 
 		for c in iter(lambda: terminal.stdout.read(1), ''):
 			frappe.publish_realtime(key, c, user=frappe.session.user)

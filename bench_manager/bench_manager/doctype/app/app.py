@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
-import os, re
+import os, re, time
+from  bench_manager.bench_manager.utils import console_command
 
 class App(Document):
 	app_info_fields = ["app_title", "app_description", "app_publisher", "app_email",
@@ -14,9 +15,13 @@ class App(Document):
 
 	def validate(self):
 		if self.get("__islocal"):
+			frappe.msgprint(str(self.developer_flag))
 			if self.developer_flag == 0:
-				self.create_app()
+				self.create_app(self.key)
 			self.developer_flag = 0
+			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
+			while not os.path.isfile(app_data_path):
+				time.sleep(2)
 			self.update_app_details()
 		else:
 			if self.developer_flag == 0:
@@ -28,9 +33,8 @@ class App(Document):
 	def set_attr(self, varname, varval):
 		return setattr(self, varname, varval)
 
-	def create_app(self):
-		app_list = check_output("cd ../apps && ls",
-			shell=True).split("\n")
+	def create_app(self, key):
+		app_list = check_output("ls".split(), cwd='../apps').split("\n")
 		if self.app_name in app_list:
 			frappe.throw("App: "+ self.app_name + " already exists, but most\
 				likely there isn't a log of this app. Please click sync to\
@@ -40,18 +44,25 @@ class App(Document):
 				frappe.throw("The app name should be developer friendly, and \
 					should not contain spaces !")
 			else:
-				terminal = Popen("cd .. && bench new-app " + self.app_name,
-					stdin=PIPE, shell=True)
-				str_to_exec = ''
+				# terminal = Popen("cd .. && bench new-app " + self.app_name,
+				# 	stdin=PIPE, shell=True)
+				frappe.msgprint("create_app")
+				e = ["bench new-app " + self.app_name]
+				str_to_exec = '\n'
 				for app_info_field in self.app_info_fields:
 					if self.get_attr(app_info_field) == None:
 						self.set_attr(app_info_field, '\n')
 					else:
 						self.set_attr(app_info_field, self.get_attr(app_info_field)+'\n')
+					# str_to_exec += self.get_attr(app_info_field)
 					str_to_exec += self.get_attr(app_info_field)
-
-				terminal.communicate(str_to_exec)
-				frappe.msgprint('Done')
+				e.append(str_to_exec)
+				# str_to_exec = str_to_exec.split('\n')
+				# str_to_exec = [i+'\n' for i in str_to_exec]
+				# terminal.communicate(str_to_exec)
+				frappe.msgprint(e)
+				frappe.enqueue('bench_manager.bench_manager.utils.run_command',
+					exec_str_list=e, cwd='..', doctype='App', key=key, docname=self.app_name)
 
 	def on_trash(self):
 		if self.developer_flag == 0:
@@ -90,4 +101,4 @@ class App(Document):
 		except:
 			frappe.throw("Hey developer, the app you're trying to create an \
 				instance of doesn't actually exist. You could consider setting \
-				bypass flag to 0 to actually create the app")
+				developer flag to 0 to actually create the app")
