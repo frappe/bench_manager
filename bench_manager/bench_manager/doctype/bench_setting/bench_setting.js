@@ -9,15 +9,18 @@ frappe.ui.form.on('Bench Setting', {
 			.get(0);
 	},
 	refresh: function(frm) {
-		frm.add_custom_button(__('Update'), () => {
-			frappe._output = '';
-			frappe._in_progress = false;
-			frappe._output_target.innerHTML = '';
+		frm.add_custom_button(__("Update"), function(){
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
 			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.bench_setting.bench_setting.bench_update',
+				method: 'bench_manager.bench_manager.utils.console_command',
 				args: {
-					command: 'bench update'
-				}
+					doctype: frm.doctype,
+					docname: frm.doc.name,
+					bench_command: 'update',
+					key: key
+				},
+				btn: this
 			});
 		});
 		frm.add_custom_button(__('Sync Backups'), () => {
@@ -36,8 +39,4 @@ frappe.ui.form.on('Bench Setting', {
 			});
 		});
 	}
-});
-
-frappe.realtime.on('terminal_output', function(output) {
-	frappe._output_target.innerHTML += output;
 });

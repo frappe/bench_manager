@@ -34,7 +34,6 @@ class Site(Document):
 			if self.developer_flag == 0:
 				self.update_app_list()
 				self.update_site_config()
-				self.sync_site_config()
 
 	def create_site(self):
 		site_list = check_output("ls", shell=True).split("\n")
@@ -68,17 +67,34 @@ class Site(Document):
 		return terminal.strip('\n').split('\n')
 
 	def update_site_config(self):
+
 		site_config_path = self.site_name+'/site_config.json'
 		common_site_config_path = 'common_site_config.json'
+
 		with open(site_config_path, 'r') as f:
 			site_config_data = json.load(f)
+		with open(common_site_config_path, 'r') as f:
+			common_site_config_data = json.load(f)
 
 		for site_config_field in self.site_config_fields:
-			site_config_data[site_config_field] = self.get_attr(site_config_field)
 
-		os.remove(site_config_path)
-		with open(site_config_path, 'w') as f:
-		    json.dump(site_config_data, f, indent=4)
+			if self.get_attr(site_config_field) == None or self.get_attr(site_config_field) == '':
+				frappe.msgprint(site_config_field)
+				if site_config_data.get(site_config_field) != None:
+					site_config_data.pop(site_config_field)
+				self.set_attr(site_config_field,
+					common_site_config_data[site_config_field])
+
+			elif (not common_site_config_data.get(site_config_field) or self.get_attr(site_config_field) != common_site_config_data[site_config_field]):
+				site_config_data[site_config_field] = self.get_attr(site_config_field)
+				# frappe.msgprint()
+			elif self.get_attr(site_config_field) == common_site_config_data[site_config_field]:
+				if site_config_data.get(site_config_field) != None:
+					site_config_data.pop(site_config_field)
+
+			os.remove(site_config_path)
+			with open(site_config_path, 'w') as f:
+					json.dump(site_config_data, f, indent=4)
 
 	def sync_site_config(self):
 		try:
@@ -119,16 +135,3 @@ def get_removable_apps(doctype, docname):
 	removable_apps = frappe.get_doc(doctype, docname).app_list.split('\n')
 	removable_apps.remove('frappe')
 	return removable_apps
-
-@frappe.whitelist()
-def console_command(doctype, docname, key, bench_command, app_name=''):
-	shell_commands = {
-		"install_app": "bench --site "+ docname + " install-app "+app_name,
-		"remove_app": "bench --site "+ docname + " uninstall-app "+app_name+" --yes",
-		"backup_site": "bench --site "+ docname + " backup --with-files",
-		"migrate": "bench --site "+ docname + " migrate",
-		"reinstall": "bench --site "+ docname + " reinstall --yes"
-	}
-	str_to_exec = [shell_commands[bench_command]]
-	frappe.enqueue('bench_manager.bench_manager.doctype.bench_manager_command.bench_manager_command.run_command',
-		exec_str_list=str_to_exec, cwd='..', doctype=doctype, key=key, docname=docname)
