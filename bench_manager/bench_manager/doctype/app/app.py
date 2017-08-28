@@ -6,7 +6,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
-import os, re
+import os, re, time
+from  bench_manager.bench_manager.utils import console_command
 
 class App(Document):
 	app_info_fields = ["app_title", "app_description", "app_publisher", "app_email",
@@ -14,9 +15,13 @@ class App(Document):
 
 	def validate(self):
 		if self.get("__islocal"):
+			frappe.msgprint(str(self.developer_flag))
 			if self.developer_flag == 0:
-				self.create_app()
+				self.create_app(self.key)
 			self.developer_flag = 0
+			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
+			while not os.path.isfile(app_data_path):
+				time.sleep(2)
 			self.update_app_details()
 		else:
 			if self.developer_flag == 0:
@@ -28,7 +33,7 @@ class App(Document):
 	def set_attr(self, varname, varval):
 		return setattr(self, varname, varval)
 
-	def create_app(self):
+	def create_app(self, key):
 		app_list = check_output("cd ../apps && ls",
 			shell=True).split("\n")
 		if self.app_name in app_list:
@@ -50,6 +55,7 @@ class App(Document):
 						self.set_attr(app_info_field, self.get_attr(app_info_field)+'\n')
 					str_to_exec += self.get_attr(app_info_field)
 
+				frappe.msgprint('Creating app, please be patient...')
 				terminal.communicate(str_to_exec)
 				frappe.msgprint('Done')
 
@@ -64,7 +70,10 @@ class App(Document):
 			try:
 				apps.remove(self.app_name)
 			except:
-				apps.remove(self.app_name+'\n')
+				try:
+					apps.remove(self.app_name+'\n')
+				except:
+					pass
 			os.remove(apps_file)
 			with open(apps_file, 'w') as f:
 			    f.writelines(apps)
@@ -90,4 +99,4 @@ class App(Document):
 		except:
 			frappe.throw("Hey developer, the app you're trying to create an \
 				instance of doesn't actually exist. You could consider setting \
-				bypass flag to 0 to actually create the app")
+				developer flag to 0 to actually create the app")

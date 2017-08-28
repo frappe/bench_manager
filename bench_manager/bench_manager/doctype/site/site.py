@@ -6,16 +6,14 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
-import os, re, json
-# from  bench_manager.bench_manager.doctype.bench_setting.bench_setting import sync_backups
+import os, re, json, time
+from  bench_manager.bench_manager.utils import console_command
 
 class Site(Document):
-	site_config_fields = ["auto_update", "background_workers", "developer_mode",
-		"file_watcher_port", "frappe_user", "gunicorn_workers",
-		"rebase_on_pull", "redis_cache", "redis_queue", "redis_socketio", 
-		"restart_supervisor_on_update", "serve_default_site", "shallow_clone",
-		"socketio_port", "update_bench_on_update", "webserver_port",
-		"root_password", "admin_password", "db_name", "db_password"]
+	site_config_fields = ["maintenance_mode", "pause_scheduler", "db_name", "db_password",
+		"developer_mode", "limits"]
+	limits_fields = ["emails", "expiry", "space", "space_usage"]
+	space_usage_fields = ["backup_size", "database_size", "files_size", "total"]
 
 	def get_attr(self, varname):
 		return getattr(self, varname)
@@ -26,35 +24,38 @@ class Site(Document):
 	def validate(self):
 		if self.get("__islocal"):
 			if self.developer_flag == 0:
-				self.create_site()
+				self.create_site(self.key)
+			site_config_path = self.site_name+'/site_config.json'
+			while not os.path.isfile(site_config_path):
+				time.sleep(2)
 			self.developer_flag = 0
 			self.sync_site_config()
-			self.update_app_list()
+			self.app_list = 'frappe'
 		else:
 			if self.developer_flag == 0:
 				self.update_app_list()
-				self.update_site_config()
+				self.sync_site_config()
+				# self.update_site_config()
 
-	def create_site(self):
-		site_list = check_output("ls", shell=True).split("\n")
+	def create_site(self, key):
+		site_list = check_output("ls".split()).split("\n")
 		if self.site_name in site_list:
 			frappe.throw("Site: "+ self.site_name+ " already exists, but most\
 				likely there isn't a log of this site. Please click sync to\
 				refresh your site list!")
 		else:
-			check_output("bench new-site "+self.site_name,
-				shell=True, cwd='..')
+			console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site')
 
 	def on_trash(self):
 		if self.developer_flag == 0:
 			site_list = check_output("ls", shell=True).split("\n")
 			if self.site_name in site_list:
+				# console_command(docname=self.site_name, key=key, bench_command='drop-site')
 				check_output("bench drop-site "+self.site_name,
 					shell=True, cwd='..')
 			else:
 				frappe.throw("Site: "+ self.site_name+ " doesn't exists! Please\
 					click sync to refresh your site list!")
-			return
 		else:
 			pass
 
@@ -97,17 +98,8 @@ class Site(Document):
 					json.dump(site_config_data, f, indent=4)
 
 	def sync_site_config(self):
-		try:
+		if os.path.isfile(self.site_name+'/site_config.json'):
 			site_config_path = self.site_name+'/site_config.json'
-			common_site_config_path = 'common_site_config.json'
-			with open(common_site_config_path, 'r') as f:
-				common_site_config_data = json.load(f)
-				for site_config_field in self.site_config_fields:
-					try:
-						self.set_attr(site_config_field,
-							common_site_config_data[site_config_field])
-					except:
-						pass
 			with open(site_config_path, 'r') as f:
 				site_config_data = json.load(f)
 				for site_config_field in self.site_config_fields:
@@ -116,7 +108,7 @@ class Site(Document):
 							site_config_data[site_config_field])
 					except:
 						pass
-		except:
+		else:
 			frappe.throw("Hey developer, the site you're trying to create an \
 				instance of doesn't actually exist. You could consider setting \
 				bypass flag to 0 to actually create the site")
