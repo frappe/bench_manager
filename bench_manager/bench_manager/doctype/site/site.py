@@ -44,7 +44,7 @@ class Site(Document):
 				likely there isn't a log of this site. Please click sync to\
 				refresh your site list!")
 		else:
-			console_command(docname=self.site_name, key=key, bench_command='new-site')
+			console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site')
 
 	def on_trash(self):
 		if self.developer_flag == 0:
