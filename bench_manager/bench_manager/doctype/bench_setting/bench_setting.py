@@ -15,7 +15,7 @@ class BenchSetting(Document):
 		"github_password", "mail_login", "mail_password", "mail_port", "mail_server",
 		"use_tls", "rebase_on_pull", "redis_cache", "redis_queue", "redis_socketio",
 		"restart_supervisor_on_update", "root_password", "serve_default_site",
-		"socketio_port", "update_bench_on_update", "webserver_port"]
+		"socketio_port", "update_bench_on_update", "webserver_port", "file_watcher_port"]
 
 	def set_attr(self, varname, varval):
 		return setattr(self, varname, varval)
