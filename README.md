@@ -6,7 +6,7 @@ Bench Manager is a graphical user interface to emulate the functionalities of Fr
 
 Bench manager can be added to Bench using the get-app command. 
 
-``` bench get-app bench_manager https://github.com/codingCoffee/bench_manager```
+``` bench get-app bench_manager https://github.com/frappe/bench_manager```
 
 ## Features
 
