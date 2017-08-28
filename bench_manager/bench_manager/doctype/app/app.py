@@ -34,7 +34,8 @@ class App(Document):
 		return setattr(self, varname, varval)
 
 	def create_app(self, key):
-		app_list = check_output("ls".split(), cwd='../apps').split("\n")
+		app_list = check_output("cd ../apps && ls",
+			shell=True).split("\n")
 		if self.app_name in app_list:
 			frappe.throw("App: "+ self.app_name + " already exists, but most\
 				likely there isn't a log of this app. Please click sync to\
@@ -44,25 +45,19 @@ class App(Document):
 				frappe.throw("The app name should be developer friendly, and \
 					should not contain spaces !")
 			else:
-				# terminal = Popen("cd .. && bench new-app " + self.app_name,
-				# 	stdin=PIPE, shell=True)
-				frappe.msgprint("create_app")
-				e = ["bench new-app " + self.app_name]
-				str_to_exec = '\n'
+				terminal = Popen("cd .. && bench new-app " + self.app_name,
+					stdin=PIPE, shell=True)
+				str_to_exec = ''
 				for app_info_field in self.app_info_fields:
 					if self.get_attr(app_info_field) == None:
 						self.set_attr(app_info_field, '\n')
 					else:
 						self.set_attr(app_info_field, self.get_attr(app_info_field)+'\n')
-					# str_to_exec += self.get_attr(app_info_field)
 					str_to_exec += self.get_attr(app_info_field)
-				e.append(str_to_exec)
-				# str_to_exec = str_to_exec.split('\n')
-				# str_to_exec = [i+'\n' for i in str_to_exec]
-				# terminal.communicate(str_to_exec)
-				frappe.msgprint(e)
-				frappe.enqueue('bench_manager.bench_manager.utils.run_command',
-					exec_str_list=e, cwd='..', doctype='App', key=key, docname=self.app_name)
+
+				frappe.msgprint('Creating app, please be patient...')
+				terminal.communicate(str_to_exec)
+				frappe.msgprint('Done')
 
 	def on_trash(self):
 		if self.developer_flag == 0:
@@ -75,7 +70,10 @@ class App(Document):
 			try:
 				apps.remove(self.app_name)
 			except:
-				apps.remove(self.app_name+'\n')
+				try:
+					apps.remove(self.app_name+'\n')
+				except:
+					pass
 			os.remove(apps_file)
 			with open(apps_file, 'w') as f:
 			    f.writelines(apps)
