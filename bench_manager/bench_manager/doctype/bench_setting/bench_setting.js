@@ -7,6 +7,16 @@ frappe.ui.form.on('Bench Setting', {
 			.appendTo(frm.get_field('run_command_output').wrapper)
 			.find('code')
 			.get(0);
+		let site_config_fields = ["background_workers", "shallow_clone", "admin_password",
+			"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
+			"dropbox_access_key", "dropbox_secret_key", "gunicorn_workers", "github_username",
+			"github_password", "mail_login", "mail_password", "mail_port", "mail_server",
+			"use_tls", "rebase_on_pull", "redis_cache", "redis_queue", "redis_socketio",
+			"restart_supervisor_on_update", "root_password", "serve_default_site",
+			"socketio_port", "update_bench_on_update", "webserver_port", "developer_mode"];
+		site_config_fields.forEach(function(val){
+			frm.toggle_display(val, frm.doc[val] != undefined);
+		});
 	},
 	refresh: function(frm) {
 		frm.add_custom_button(__("Update"), function(){

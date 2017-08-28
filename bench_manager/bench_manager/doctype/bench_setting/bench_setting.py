@@ -9,12 +9,36 @@ import json, os
 from subprocess import check_output, Popen, PIPE
 
 class BenchSetting(Document):
-	pass
+	site_config_fields = ["background_workers", "shallow_clone", "admin_password",
+		"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
+		"dropbox_access_key", "dropbox_secret_key", "gunicorn_workers", "github_username",
+		"github_password", "mail_login", "mail_password", "mail_port", "mail_server",
+		"use_tls", "rebase_on_pull", "redis_cache", "redis_queue", "redis_socketio",
+		"restart_supervisor_on_update", "root_password", "serve_default_site",
+		"socketio_port", "update_bench_on_update", "webserver_port", "file_watcher_port"]
 
-@frappe.whitelist()
-def bench_update(command):
-	frappe.enqueue('bench_manager.bench_manager.doctype.bench_setting.bench_setting._bench_update',
-		command = command, user = frappe.session.user)
+	def set_attr(self, varname, varval):
+		return setattr(self, varname, varval)
+
+	def onload(self):
+		self.sync_site_config()
+
+	def sync_site_config(self):
+		common_site_config_path = 'common_site_config.json'
+		with open(common_site_config_path, 'r') as f:
+			common_site_config_data = json.load(f)
+			for site_config_field in self.site_config_fields:
+				try:
+					self.set_attr(site_config_field,
+						common_site_config_data[site_config_field])
+				except:
+					pass
+
+
+# @frappe.whitelist()
+# def bench_update(command):
+# 	frappe.enqueue('bench_manager.bench_manager.doctype.bench_setting.bench_setting._bench_update',
+# 		command = command, user = frappe.session.user)
 
 @frappe.whitelist()
 def sync_sites():
@@ -58,10 +82,10 @@ def sync_apps():
 		doc.delete()
 	frappe.msgprint('Done')
 
-def _bench_update(command, user):
-	terminal = Popen(command.split(), stdout=PIPE, cwd='..')
-	for c in iter(lambda: terminal.stdout.read(1), ''):
-		frappe.publish_realtime('terminal_output', c, user=user)
+# def _bench_update(command, user):
+# 	terminal = Popen(command.split(), stdout=PIPE, cwd='..')
+# 	for c in iter(lambda: terminal.stdout.read(1), ''):
+# 		frappe.publish_realtime('terminal_output', c, user=user)
 
 def update_app_list():
 	app_list_file = 'apps.txt'
