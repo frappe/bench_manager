@@ -25,6 +25,7 @@ There are 4 main doctypes associated with this app.
 
 - This doctype shows a list of all installed apps in the current bench Instance.
 - The New button in this doctype emulates the ```bench new-app <app-name>``` command.
+![](.screenshots/app.png)
 
 ### 2. Bench Setting
 
@@ -35,6 +36,7 @@ There are 4 main doctypes associated with this app.
 - The Sync Apps button reads, greps and populates all the installed apps in the App doctype.
 - The Bench setting doctype also displays all the config parameters in the common-site-config.json which is applicable to all 
   the sites in your bench instance.
+![](.screenshots/bench_setting.png)
 
 ### 3. Site
 
@@ -51,6 +53,7 @@ There are 4 main doctypes associated with this app.
       * On clicking this button a ui-dialog pops up where one can select and install any app onto the site.
   4. Uninstall App
       * Lets you uninstall an app from the site. 
+![](.screenshots/site.png)
 
 ### 4. Site Backup
 
@@ -58,6 +61,7 @@ There are 4 main doctypes associated with this app.
 - Inside each individual docname one can find a Restore button.
 - Clicking the Restore button pops up a ui-dialog.
 - In this ui-dialog once chose whether to restore the backup either on an existing site or on a new site.
+![](.screenshots/site_backup.png)
 
 ### 5. Bench Manager Command
 
@@ -66,6 +70,7 @@ There are 4 main doctypes associated with this app.
 - It also displays the date and time on which the command was executed.
 - The status of the command can be one of 3 types (Success, Failed or Ongoing)
 - Finally the console text field displays the log of the command.
+![](.screenshots/bench_manager_command.png)
 
 #### License
 
