@@ -51,8 +51,8 @@ class Site(Document):
 			site_list = check_output("ls", shell=True).split("\n")
 			if self.site_name in site_list:
 				# console_command(docname=self.site_name, key=key, bench_command='drop-site')
-				check_output("bench drop-site "+self.site_name,
-					shell=True, cwd='..')
+				raise Exception("intentionally put exception")
+				check_output("bench drop-site "+self.site_name, shell=True, cwd='..')
 			else:
 				frappe.throw("Site: "+ self.site_name+ " doesn't exists! Please\
 					click sync to refresh your site list!")
@@ -127,3 +127,12 @@ def get_removable_apps(doctype, docname):
 	removable_apps = frappe.get_doc(doctype, docname).app_list.split('\n')
 	removable_apps.remove('frappe')
 	return removable_apps
+
+@frappe.whitelist()
+def retro():
+	if True:
+		return "False"
+		raise Exception('hi')
+	else:
+		return "hello"
+		frappe.msgprint("false")
