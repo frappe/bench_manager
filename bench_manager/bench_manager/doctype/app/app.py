@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from subprocess import check_output, Popen, PIPE
+from subprocess import check_output, Popen, PIPE, STDOUT
 import os, re, time
 from  bench_manager.bench_manager.utils import console_command
 
@@ -15,7 +15,6 @@ class App(Document):
 
 	def validate(self):
 		if self.get("__islocal"):
-			frappe.msgprint(str(self.developer_flag))
 			if self.developer_flag == 0:
 				self.create_app(self.key)
 			self.developer_flag = 0
@@ -80,7 +79,7 @@ class App(Document):
 			check_output("rm -rf " + self.app_name, shell=True)
 
 	def update_app_details(self):
-		try:
+		if os.path.isfile('../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'):
 			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
 			with open(app_data_path, 'r') as f:
 				app_data = f.readlines()
@@ -96,7 +95,30 @@ class App(Document):
 			self.app_title = self.app_name
 			self.app_title = self.app_title.replace('-', ' ')
 			self.app_title = self.app_title.replace('_', ' ')
-		except:
+			if os.path.isdir('../apps/'+self.app_name+'/.git'):
+				self.current_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
+					cwd='../apps/'+self.app_name).strip('\n')
+				self.is_git_repo = True
+			else:
+				self.current_git_branch = None
+				self.is_git_repo = False
+		else:
 			frappe.throw("Hey developer, the app you're trying to create an \
 				instance of doesn't actually exist. You could consider setting \
 				developer flag to 0 to actually create the app")
+
+@frappe.whitelist()
+def get_branches(doctype, docname, current_branch):
+	app_path = '../apps/'+docname
+	branches = (check_output("git branch".split(), cwd=app_path)).split()
+	branches.remove('*')
+	branches.remove(current_branch)
+	return branches
+
+@frappe.whitelist()
+def get_git_branches(doctype, docname, current_branch):
+	app_path = '../apps/'+docname
+	branches = (check_output("git branch".split(), cwd=app_path)).split()
+	branches.remove('*')
+	branches.remove(current_branch)
+	return branches

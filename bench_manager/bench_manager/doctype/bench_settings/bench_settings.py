@@ -8,7 +8,7 @@ from frappe.model.document import Document
 import json, os
 from subprocess import check_output, Popen, PIPE
 
-class BenchSetting(Document):
+class BenchSettings(Document):
 	site_config_fields = ["background_workers", "shallow_clone", "admin_password",
 		"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
 		"dropbox_access_key", "dropbox_secret_key", "gunicorn_workers", "github_username",
@@ -33,12 +33,6 @@ class BenchSetting(Document):
 						common_site_config_data[site_config_field])
 				except:
 					pass
-
-
-# @frappe.whitelist()
-# def bench_update(command):
-# 	frappe.enqueue('bench_manager.bench_manager.doctype.bench_setting.bench_setting._bench_update',
-# 		command = command, user = frappe.session.user)
 
 @frappe.whitelist()
 def sync_sites():
@@ -66,6 +60,8 @@ def sync_apps():
 	app_entries = [x['name'] for x in frappe.get_all('App')]
 	create_apps = list(set(app_dirs) - set(app_entries))
 	delete_apps = list(set(app_entries) - set(app_dirs))
+	create_apps = filter(lambda a: a != '', create_apps)
+	delete_apps = filter(lambda a: a != '', delete_apps)
 	frappe.msgprint('Please be patitent while enries for these apps are created')
 	frappe.msgprint(create_apps)
 	for app in create_apps:
