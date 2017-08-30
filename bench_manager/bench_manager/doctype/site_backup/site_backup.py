@@ -11,7 +11,7 @@ class SiteBackup(Document):
 	def autoname(self):
 		if self.site_name == None:
 			return
-		self.name = self.site_name +' '+ self.date +' '+ self.time
+		self.name = self.date +' '+ self.time +' '+ self.site_name
 
 	def validate(self):
 		if self.get("__islocal"):
@@ -31,7 +31,8 @@ class SiteBackup(Document):
 					shell=True, cwd='..')
 			frappe.msgprint('Backup deleted !')
 		else:
-			frappe.msgprint('Deleting the entry but not the Backup')
+			pass
+			# frappe.msgprint('Deleting the entry but not the Backup')
 
 @frappe.whitelist()
 def get_restore_options(doctype, docname):

@@ -21,11 +21,14 @@ def console_command(doctype='', docname='', key='', bench_command='', app_name='
 		"drop-site": ["bench drop-site "+docname],
 		"switch-to-branch": ["git checkout "+branch_name],
 		"create-branch": ["git checkout -b "+branch_name],
-		"git-init": ["git init", "git add .", "git commit -m 'Initial Commit'"]
+		"delete-branch": ["git branch -D "+branch_name],
+		"git-init": ["git init", "git add .", "git commit -m 'Initial Commit'"],
+		"git-fetch": ["git fetch"]
 	}
 	exec_str_list = shell_commands[bench_command]
 	frappe.enqueue('bench_manager.bench_manager.utils.run_command',
 		exec_str_list=exec_str_list, cwd=cwd, doctype=doctype, key=key, docname=docname)
+	return 0
 
 @frappe.whitelist()
 def run_command(exec_str_list, cwd, doctype, key, docname=' ', shell=False):
@@ -50,6 +53,7 @@ def run_command(exec_str_list, cwd, doctype, key, docname=' ', shell=False):
 		_close_the_doc(start_time, key, console_dump, status='Failed', user=frappe.session.user)
 	finally:
 		frappe.enqueue('bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_all')
+	return 0
 
 
 def _close_the_doc(start_time, key, console_dump, status, user):
