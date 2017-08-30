@@ -44,7 +44,17 @@ class Site(Document):
 				likely there isn't a log of this site. Please click sync to\
 				refresh your site list!")
 		else:
-			console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site')
+			if not self.install_erpnext:
+				console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site')
+			else:
+				with open('apps.txt', 'r') as f:
+				    app_list = f.read()
+				if 'erpnext' in app_list:
+					console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site & install-erpnext')
+				else:
+					console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site & get-app & install-erpnext')
+
+
 
 	def on_trash(self):
 		if self.developer_flag == 0:
