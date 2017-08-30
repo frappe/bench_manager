@@ -14,7 +14,7 @@ def console_command(doctype='', docname='', key='', bench_command='', app_name='
 		"install_app": ["bench --site "+ docname + " install-app " + app_name],
 		"remove_app": ["bench --site "+ docname + " uninstall-app " + app_name + " --yes"],
 		"backup_site": ["bench --site "+ docname + " backup --with-files"],
-		"migrate": ["bench --site "+ docname + " migrates"],
+		"migrate": ["bench --site "+ docname + " migrate"],
 		"reinstall": ["bench --site "+ docname + " reinstall --yes"],
 		"update": ["bench update"],
 		"new-site": ["bench new-site "+docname],
@@ -23,9 +23,11 @@ def console_command(doctype='', docname='', key='', bench_command='', app_name='
 		"create-branch": ["git checkout -b "+branch_name],
 		"delete-branch": ["git branch -D "+branch_name],
 		"git-init": ["git init", "git add .", "git commit -m 'Initial Commit'"],
-		"git-fetch": ["git fetch"],
-		"new-site & install-erpnext": ["bench new-site "+docname, "bench --site "+docname+" install-app erpnext"],
-		"new-site & get-app & install-erpnext": ["bench new-site "+docname, "bench get-app erpnext https://github.com/frappe/erpnext.git","bench --site "+docname+" install-app erpnext"]
+		"git-fetch": ["git fetch --all"],
+		"new-site & install-erpnext": ["bench new-site "+docname,
+			"bench --site "+docname+" install-app erpnext"],
+		"new-site & get-app & install-erpnext": ["bench new-site "+docname,
+			"bench get-app erpnext https://github.com/frappe/erpnext.git","bench --site "+docname+" install-app erpnext"]
 	}
 	exec_str_list = shell_commands[bench_command]
 	frappe.enqueue('bench_manager.bench_manager.utils.run_command',
