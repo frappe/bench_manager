@@ -48,14 +48,7 @@ class Site(Document):
 
 	def on_trash(self):
 		if self.developer_flag == 0:
-			site_list = check_output("ls", shell=True).split("\n")
-			if self.site_name in site_list:
-				# console_command(docname=self.site_name, key=key, bench_command='drop-site')
-				raise Exception("intentionally put exception")
-				check_output("bench drop-site "+self.site_name, shell=True, cwd='..')
-			else:
-				frappe.throw("Site: "+ self.site_name+ " doesn't exists! Please\
-					click sync to refresh your site list!")
+			frappe.throw("Please refresh the page and try again")
 		else:
 			pass
 
@@ -129,10 +122,11 @@ def get_removable_apps(doctype, docname):
 	return removable_apps
 
 @frappe.whitelist()
-def retro():
-	if True:
-		return "False"
-		raise Exception('hi')
+def ui_on_trash(doctype, docname, key):
+	site_list = check_output("ls", shell=True).split("\n")
+	if docname in site_list:
+		console_command(doctype=doctype, docname=docname, key=key, bench_command='drop-site')
+		
 	else:
-		return "hello"
-		frappe.msgprint("false")
+		frappe.throw("Site: "+ docname + " doesn't exists! Please\
+			click sync to refresh your site list!")

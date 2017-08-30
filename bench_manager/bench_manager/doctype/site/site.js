@@ -1,27 +1,6 @@
 // Copyright (c) 2017, Frappé and contributors
 // For license information, please see license.txt
 
-(function poll(){
-	let poll_interval=0;
-	$.ajax({
-		url: "/api/method/bench_manager.bench_manager.doctype.site.site.retro",
-		dataType: "json",
-		complete: poll,
-		success: function (r) {
-			if (r.message != "False"){
-				console_dialog(key);
-			} 
-		},
-		error: function () {
-			poll_interval=5000;
-		},
-		complete: function () {
-			poll_interval=2000;
-			setTimeout(poll, poll_interval);
-		}
-	});
-})();
-
 frappe.ui.form.on('Site', {
 	validate: function(frm) {
 		if (frm.doc.db_name == undefined) {
@@ -38,28 +17,21 @@ frappe.ui.form.on('Site', {
 		});
 	},
 	refresh: function(frm) {
-		(function poll(){
-			let poll_interval = Infinity;
-			$.ajax({
-				url: "/api/method/bench_manager.bench_manager.doctype.site.site.retro",
-				dataType: "json",
-				complete: poll,
-				success: function (r) {
-					if (r.message == "False"){
-						poll_interval = 2000
-					} else {
-						console_dialog(r.message);
-						poll_interval=Infinity;
-					}
+		$("a.grey-link:contains('Delete')").click(function() {
+			// setTimeout(cur_dialog.cancel(), 5000)
+			$("button.btn:contains('No')").click()
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.ui_on_trash',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name,
+					key: key
 				},
-				error: function () {
-					poll_interval = 5000;
-				},
-				complete: function () {
-					setTimeout(poll, poll_interval);
-				}
+				btn: this
 			});
-		})();
+		});
 		if (frm.doc.db_name == undefined) {
 			$('div.form-inner-toolbar').hide();
 		} else {
