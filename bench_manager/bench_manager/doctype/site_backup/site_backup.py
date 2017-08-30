@@ -11,7 +11,7 @@ class SiteBackup(Document):
 	def autoname(self):
 		if self.site_name == None:
 			return
-		self.name = self.date +' '+ self.time +' '+ self.site_name
+		self.name = self.site_name +' '+ self.date +' '+ self.time
 
 	def validate(self):
 		if self.get("__islocal"):

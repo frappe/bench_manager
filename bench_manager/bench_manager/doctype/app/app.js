@@ -8,7 +8,7 @@ frappe.ui.form.on('App', {
 		}
 	},
 	refresh: function(frm) {
-		if (frm.doc.db_name == undefined) {
+		if (frm.doc.version == undefined) {
 			$('div.form-inner-toolbar').hide();
 		} else {
 			$('div.form-inner-toolbar').show();
