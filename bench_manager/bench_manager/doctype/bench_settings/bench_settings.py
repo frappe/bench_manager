@@ -22,6 +22,7 @@ class BenchSettings(Document):
 
 	def onload(self):
 		self.sync_site_config()
+		self.update_git_details()
 
 	def sync_site_config(self):
 		common_site_config_path = 'common_site_config.json'
@@ -33,6 +34,10 @@ class BenchSettings(Document):
 						common_site_config_data[site_config_field])
 				except:
 					pass
+
+	def update_git_details(self):
+		self.frappe_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
+			cwd='../apps/frappe/').strip('\n')
 
 @frappe.whitelist()
 def sync_sites():
