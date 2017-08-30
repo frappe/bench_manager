@@ -114,11 +114,3 @@ def get_branches(doctype, docname, current_branch):
 	branches.remove('*')
 	branches.remove(current_branch)
 	return branches
-
-@frappe.whitelist()
-def get_git_branches(doctype, docname, current_branch):
-	app_path = '../apps/'+docname
-	branches = (check_output("git branch".split(), cwd=app_path)).split()
-	branches.remove('*')
-	branches.remove(current_branch)
-	return branches

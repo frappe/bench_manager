@@ -197,3 +197,4 @@ def sync_all():
 	sync_sites()
 	sync_apps()
 	sync_backups()
+	frappe.msgprint('Done')

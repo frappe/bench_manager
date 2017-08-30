@@ -48,7 +48,7 @@ class Site(Document):
 
 	def on_trash(self):
 		if self.developer_flag == 0:
-			frappe.throw("Please refresh the page and try again")
+			frappe.throw("Please go inside the site and try deleting again")
 		else:
 			pass
 
@@ -126,7 +126,6 @@ def ui_on_trash(doctype, docname, key):
 	site_list = check_output("ls", shell=True).split("\n")
 	if docname in site_list:
 		console_command(doctype=doctype, docname=docname, key=key, bench_command='drop-site')
-		
 	else:
 		frappe.throw("Site: "+ docname + " doesn't exists! Please\
 			click sync to refresh your site list!")

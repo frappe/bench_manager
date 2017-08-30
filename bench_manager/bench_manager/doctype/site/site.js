@@ -18,7 +18,6 @@ frappe.ui.form.on('Site', {
 	},
 	refresh: function(frm) {
 		$("a.grey-link:contains('Delete')").click(function() {
-			// setTimeout(cur_dialog.cancel(), 5000)
 			$("button.btn:contains('No')").click()
 			let key = frappe.datetime.get_datetime_as_string();
 			console_dialog(key);
@@ -31,6 +30,7 @@ frappe.ui.form.on('Site', {
 				},
 				btn: this
 			});
+			
 		});
 		if (frm.doc.db_name == undefined) {
 			$('div.form-inner-toolbar').hide();
