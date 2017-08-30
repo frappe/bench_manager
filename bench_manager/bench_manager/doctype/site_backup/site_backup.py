@@ -20,7 +20,7 @@ class SiteBackup(Document):
 			self.developer_flag = 0
 
 	def on_trash(self):
-		if self.developer_flag == 1:
+		if self.developer_flag == 0:
 			check_output('rm ' + self.file_path + '_database.sql*',
 				shell=True, cwd='..')
 			if self.public_file_backup:

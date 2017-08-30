@@ -18,7 +18,7 @@ def console_command(doctype='', docname='', key='', bench_command='', app_name='
 		"reinstall": ["bench --site "+ docname + " reinstall --yes"],
 		"update": ["bench update"],
 		"new-site": ["bench new-site "+docname],
-		"drop-site": ["bench drop-site "+docname], #not-used
+		"drop-site": ["bench drop-site "+docname],
 		"switch-to-branch": ["git checkout "+branch_name],
 		"create-branch": ["git checkout -b "+branch_name],
 		"git-init": ["git init", "git add .", "git commit -m 'Initial Commit'"]
@@ -48,6 +48,8 @@ def run_command(exec_str_list, cwd, doctype, key, docname=' ', shell=False):
 			_close_the_doc(start_time, key, console_dump, status='Success', user=frappe.session.user)
 	except:
 		_close_the_doc(start_time, key, console_dump, status='Failed', user=frappe.session.user)
+	finally:
+		frappe.enqueue('bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_all')
 
 
 def _close_the_doc(start_time, key, console_dump, status, user):
