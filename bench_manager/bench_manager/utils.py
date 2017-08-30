@@ -37,7 +37,7 @@ def run_command(exec_str_list, cwd, doctype, key, docname=' ', shell=False):
 	start_time = frappe.utils.time.time()
 	console_dump = ''
 	doc = frappe.get_doc({'doctype': 'Bench Manager Command', 'key': key, 'source': doctype+': '+docname,
-		 'command': '\n'.join(exec_str_list), 'console': console_dump, 'status': 'Ongoing'})
+		 'command': ' && '.join(exec_str_list), 'console': console_dump, 'status': 'Ongoing'})
 	doc.insert()
 	frappe.db.commit()
 	try:
