@@ -53,7 +53,8 @@ There are 4 main doctypes associated with this app.
   3. Install App
       * On clicking this button a ui-dialog pops up where one can select and install any app onto the site.
   4. Uninstall App
-      * Lets you uninstall an app from the site. 
+      * Lets you uninstall an app from the site.
+
 ![](bench_manager/public/images/site_creation.gif)
 
 ### 4. Site Backup
