@@ -11,7 +11,7 @@ from  bench_manager.bench_manager.utils import console_command
 
 class Site(Document):
 	site_config_fields = ["maintenance_mode", "pause_scheduler", "db_name", "db_password",
-		"developer_mode", "limits"]
+		"developer_mode", "disable_website_cache" "limits"]
 	limits_fields = ["emails", "expiry", "space", "space_usage"]
 	space_usage_fields = ["backup_size", "database_size", "files_size", "total"]
 
@@ -20,6 +20,9 @@ class Site(Document):
 
 	def set_attr(self, varname, varval):
 		return setattr(self, varname, varval)
+
+	def onload(self):
+		self.sync_site_config()
 
 	def validate(self):
 		if self.get("__islocal"):
@@ -34,8 +37,8 @@ class Site(Document):
 		else:
 			if self.developer_flag == 0:
 				self.update_app_list()
+				self.update_site_config()
 				self.sync_site_config()
-				# self.update_site_config()
 
 	def create_site(self, key):
 		site_list = check_output("ls".split()).split("\n")
@@ -71,7 +74,6 @@ class Site(Document):
 		return terminal.strip('\n').split('\n')
 
 	def update_site_config(self):
-
 		site_config_path = self.site_name+'/site_config.json'
 		common_site_config_path = 'common_site_config.json'
 
@@ -80,18 +82,19 @@ class Site(Document):
 		with open(common_site_config_path, 'r') as f:
 			common_site_config_data = json.load(f)
 
-		for site_config_field in self.site_config_fields:
-
+		editable_site_config_fields = ["maintenance_mode", "pause_scheduler",
+			"developer_mode", "disable_website_cache"]
+		
+		for site_config_field in editable_site_config_fields:
 			if self.get_attr(site_config_field) == None or self.get_attr(site_config_field) == '':
-				frappe.msgprint(site_config_field)
 				if site_config_data.get(site_config_field) != None:
 					site_config_data.pop(site_config_field)
 				self.set_attr(site_config_field,
-					common_site_config_data[site_config_field])
+					common_site_config_data.get(site_config_field))
 
 			elif (not common_site_config_data.get(site_config_field) or self.get_attr(site_config_field) != common_site_config_data[site_config_field]):
 				site_config_data[site_config_field] = self.get_attr(site_config_field)
-				# frappe.msgprint()
+
 			elif self.get_attr(site_config_field) == common_site_config_data[site_config_field]:
 				if site_config_data.get(site_config_field) != None:
 					site_config_data.pop(site_config_field)
@@ -106,11 +109,19 @@ class Site(Document):
 			with open(site_config_path, 'r') as f:
 				site_config_data = json.load(f)
 				for site_config_field in self.site_config_fields:
-					try:
+					if site_config_data.get(site_config_field):
 						self.set_attr(site_config_field,
 							site_config_data[site_config_field])
-					except:
-						pass
+
+				for limits_field in self.limits_fields:
+					if site_config_data.get('limits').get(limits_field):
+						self.set_attr(limits_field,
+							site_config_data['limits'][limits_field])
+
+				for space_usage_field in self.space_usage_fields:
+					if site_config_data.get('limits').get('space_usage').get(space_usage_field):
+						self.set_attr(space_usage_field,
+							site_config_data['limits']['space_usage'][space_usage_field])
 		else:
 			frappe.throw("Hey developer, the site you're trying to create an \
 				instance of doesn't actually exist. You could consider setting \

@@ -6,9 +6,10 @@ def get_data():
 	return [
 		{
 			"module_name": "Bench Manager",
-			"color": "grey",
-			"icon": "octicon octicon-file-directory",
+			"color": "black",
+			"icon": "fa fa-gamepad",
 			"type": "module",
-			"label": _("Bench Manager")
+			"label": _("Bench Manager"),
+			"link": "Form/Bench Settings"
 		}
 	]
