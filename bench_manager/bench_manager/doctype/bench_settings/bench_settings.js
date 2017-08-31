@@ -3,10 +3,6 @@
 
 frappe.ui.form.on('Bench Settings', {
 	onload: function(frm) {
-		frappe._output_target = $('<pre class="console"><code></code></pre>')
-			.appendTo(frm.get_field('run_command_output').wrapper)
-			.find('code')
-			.get(0);
 		let site_config_fields = ["background_workers", "shallow_clone", "admin_password",
 			"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
 			"dropbox_access_key", "dropbox_secret_key", "gunicorn_workers", "github_username",
@@ -54,43 +50,43 @@ frappe.ui.form.on('Bench Settings', {
 				method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_all'
 			});
 		});
-		frm.add_custom_button(__('Switch Branch'), function(){
-			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.app.app.get_branches',
-				args: {
-					doctype: frm.doctype,
-					docname: 'frappe',
-					current_branch: frm.doc.frappe_git_branch
-				},
-				btn: this,
-				callback: function(r) {
-					var dialog = new frappe.ui.Dialog({
-						title: 'Select Branch',
-						fields: [
-							{'fieldname': 'switchable_branches', 'fieldtype': 'Select', options: r.message}
-						],
-					});
-					dialog.set_primary_action(__("Switch"), () => {
-						let key = frappe.datetime.get_datetime_as_string();
-						console_dialog(key);
-						frappe.call({
-							method: 'bench_manager.bench_manager.utils.console_command',
-							args: {
-								doctype: frm.doctype,
-								docname: 'frappe',
-								branch_name: cur_dialog.fields_dict.switchable_branches.value,
-								key: key,
-								bench_command: 'switch-to-branch',
-								cwd: '../apps/frappe'
-							},
-							callback: function(){
-								dialog.hide();
-							}
-						});
-					});
-					dialog.show();
-				}
-			});
-		});
+		// frm.add_custom_button(__('Switch Branch'), function(){
+		// 	frappe.call({
+		// 		method: 'bench_manager.bench_manager.doctype.app.app.get_branches',
+		// 		args: {
+		// 			doctype: frm.doctype,
+		// 			docname: 'frappe',
+		// 			current_branch: frm.doc.frappe_git_branch
+		// 		},
+		// 		btn: this,
+		// 		callback: function(r) {
+		// 			var dialog = new frappe.ui.Dialog({
+		// 				title: 'Select Branch',
+		// 				fields: [
+		// 					{'fieldname': 'switchable_branches', 'fieldtype': 'Select', options: r.message}
+		// 				],
+		// 			});
+		// 			dialog.set_primary_action(__("Switch"), () => {
+		// 				let key = frappe.datetime.get_datetime_as_string();
+		// 				console_dialog(key);
+		// 				frappe.call({
+		// 					method: 'bench_manager.bench_manager.utils.console_command',
+		// 					args: {
+		// 						doctype: frm.doctype,
+		// 						docname: 'frappe',
+		// 						branch_name: cur_dialog.fields_dict.switchable_branches.value,
+		// 						key: key,
+		// 						bench_command: 'switch-to-branch',
+		// 						cwd: '../apps/frappe'
+		// 					},
+		// 					callback: function(){
+		// 						dialog.hide();
+		// 					}
+		// 				});
+		// 			});
+		// 			dialog.show();
+		// 		}
+		// 	});
+		// });
 	}
 });

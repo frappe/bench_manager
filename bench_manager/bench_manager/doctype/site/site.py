@@ -113,15 +113,17 @@ class Site(Document):
 						self.set_attr(site_config_field,
 							site_config_data[site_config_field])
 
-				for limits_field in self.limits_fields:
-					if site_config_data.get('limits').get(limits_field):
-						self.set_attr(limits_field,
-							site_config_data['limits'][limits_field])
+				if site_config_data.get('limits'):
+					for limits_field in self.limits_fields:
+						if site_config_data.get('limits').get(limits_field):
+							self.set_attr(limits_field,
+								site_config_data['limits'][limits_field])
 
-				for space_usage_field in self.space_usage_fields:
-					if site_config_data.get('limits').get('space_usage').get(space_usage_field):
-						self.set_attr(space_usage_field,
-							site_config_data['limits']['space_usage'][space_usage_field])
+					if site_config_data.get('limits').get('space_usage'):
+						for space_usage_field in self.space_usage_fields:
+							if site_config_data.get('limits').get('space_usage').get(space_usage_field):
+								self.set_attr(space_usage_field,
+									site_config_data['limits']['space_usage'][space_usage_field])
 		else:
 			frappe.throw("Hey developer, the site you're trying to create an \
 				instance of doesn't actually exist. You could consider setting \

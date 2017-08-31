@@ -9,13 +9,6 @@ frappe.ui.form.on('Site', {
 			frm.doc.key = key;
 		}
 	},
-	onload: function(frm) {
-		let site_config_fields = ["maintenance_mode", "pause_scheduler", "db_name", "db_password",
-			"developer_mode", "emails", "expiry", "space", "backup_size", "database_size", "files_size", "total"];
-		site_config_fields.forEach(function(val){
-			frm.toggle_display(val, frm.doc[val] != undefined);
-		});
-	},
 	refresh: function(frm) {
 		$("a.grey-link:contains('Delete')").click(function() {
 			$("button.btn:contains('No')").click()
