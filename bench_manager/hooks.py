@@ -119,4 +119,3 @@ app_include_js = "/assets/bench_manager/js/bench_manager.js"
 # override_whitelisted_methods = {
 # 	"frappe.desk.doctype.event.event.get_events": "bench_manager.event.get_events"
 # }
-
