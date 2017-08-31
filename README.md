@@ -4,9 +4,9 @@ Bench Manager is a graphical user interface to emulate the functionalities of Fr
 
 ## Installation
 
-Bench manager can be added to Bench using the get-app command. 
+Create a new site called bench-manager.local and install Bench Manager on the site. 
 
-``` bench get-app bench_manager https://github.com/frappe/bench_manager```
+``` bench setup manager```
 
 ## Features
 
