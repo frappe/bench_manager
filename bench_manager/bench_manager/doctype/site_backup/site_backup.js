@@ -32,6 +32,8 @@ frappe.ui.form.on('Site Backup', {
 						],
 					});
 					d.set_primary_action(__("Restore"), () => {
+						let key = frappe.datetime.get_datetime_as_string();
+						console_dialog(key);
 						frappe.call({
 							method: 'bench_manager.bench_manager.doctype.site_backup.site_backup.restore_backup',
 							args: {
@@ -39,12 +41,11 @@ frappe.ui.form.on('Site Backup', {
 								docname: frm.doc.name,
 								on_a_new_site: cur_dialog.fields_dict.on_a_new_site.last_value,
 								existing_site: cur_dialog.fields_dict.existing_sites.get_input_value(),
-								new_site_name: cur_dialog.fields_dict.new_site_name.get_input_value()
+								new_site_name: cur_dialog.fields_dict.new_site_name.get_input_value(),
+								key: key
 							},
 							callback: function(){
 								d.hide();
-								frm.save();
-								frappe.msgprint('Done');
 							}
 						});
 

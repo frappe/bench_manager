@@ -2,7 +2,6 @@ from frappe import _
 
 def get_data():
 	return {
-		'fieldname': 'bench_settings',
 		'transactions': [
 			{
 				'label': _('Sites and Apps'),
