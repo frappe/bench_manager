@@ -3,10 +3,6 @@
 
 frappe.ui.form.on('Bench Settings', {
 	onload: function(frm) {
-		frappe._output_target = $('<pre class="console"><code></code></pre>')
-			.appendTo(frm.get_field('run_command_output').wrapper)
-			.find('code')
-			.get(0);
 		let site_config_fields = ["background_workers", "shallow_clone", "admin_password",
 			"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
 			"dropbox_access_key", "dropbox_secret_key", "gunicorn_workers", "github_username",
