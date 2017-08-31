@@ -17,6 +17,21 @@ frappe.ui.form.on('Site', {
 		});
 	},
 	refresh: function(frm) {
+		$("a.grey-link:contains('Delete')").click(function() {
+			$("button.btn:contains('No')").click()
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.ui_on_trash',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name,
+					key: key
+				},
+				btn: this
+			});
+			
+		});
 		if (frm.doc.db_name == undefined) {
 			$('div.form-inner-toolbar').hide();
 		} else {

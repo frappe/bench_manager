@@ -8,7 +8,7 @@ from frappe.model.document import Document
 import json, os
 from subprocess import check_output, Popen, PIPE
 
-class BenchSetting(Document):
+class BenchSettings(Document):
 	site_config_fields = ["background_workers", "shallow_clone", "admin_password",
 		"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
 		"dropbox_access_key", "dropbox_secret_key", "gunicorn_workers", "github_username",
@@ -22,6 +22,7 @@ class BenchSetting(Document):
 
 	def onload(self):
 		self.sync_site_config()
+		self.update_git_details()
 
 	def sync_site_config(self):
 		common_site_config_path = 'common_site_config.json'
@@ -34,11 +35,9 @@ class BenchSetting(Document):
 				except:
 					pass
 
-
-# @frappe.whitelist()
-# def bench_update(command):
-# 	frappe.enqueue('bench_manager.bench_manager.doctype.bench_setting.bench_setting._bench_update',
-# 		command = command, user = frappe.session.user)
+	def update_git_details(self):
+		self.frappe_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
+			cwd='../apps/frappe/').strip('\n')
 
 @frappe.whitelist()
 def sync_sites():
@@ -46,19 +45,19 @@ def sync_sites():
 	site_entries = [x['name'] for x in frappe.get_all('Site')]
 	create_sites = list(set(site_dirs) - set(site_entries))
 	delete_sites = list(set(site_entries) - set(site_dirs))
-	frappe.msgprint('Please be patitent while enries for these sites are created')
-	frappe.msgprint(create_sites)
+	# frappe.msgprint('Please be patitent while enries for these sites are created')
+	# frappe.msgprint(create_sites)
 	for site in create_sites:
 		doc = frappe.get_doc({'doctype': 'Site', 'site_name': site, 'developer_flag':1})
 		doc.insert()
-	frappe.msgprint('Please be patitent while enries for these sites are deleted')
-	frappe.msgprint(delete_sites)
+	# frappe.msgprint('Please be patitent while enries for these sites are deleted')
+	# frappe.msgprint(delete_sites)
 	for site in delete_sites:
 		doc = frappe.get_doc('Site', site)
 		doc.developer_flag = 1
 		doc.save()
 		doc.delete()
-	frappe.msgprint('Done')
+	# frappe.msgprint('Done')
 
 @frappe.whitelist()
 def sync_apps():
@@ -66,26 +65,23 @@ def sync_apps():
 	app_entries = [x['name'] for x in frappe.get_all('App')]
 	create_apps = list(set(app_dirs) - set(app_entries))
 	delete_apps = list(set(app_entries) - set(app_dirs))
-	frappe.msgprint('Please be patitent while enries for these apps are created')
-	frappe.msgprint(create_apps)
+	create_apps = filter(lambda a: a != '', create_apps)
+	delete_apps = filter(lambda a: a != '', delete_apps)
+	# frappe.msgprint('Please be patitent while enries for these apps are created')
+	# frappe.msgprint(create_apps)
 	for app in create_apps:
 		doc = frappe.get_doc({'doctype': 'App', 'app_name': app,
 			'app_description': 'lorem ipsum', 'app_publisher': 'lorem ipsum',
 			'app_email': 'lorem ipsum', 'developer_flag':1})
 		doc.insert()
-	frappe.msgprint('Please be patitent while enries for these apps are deleted')
-	frappe.msgprint(delete_apps)
+	# frappe.msgprint('Please be patitent while enries for these apps are deleted')
+	# frappe.msgprint(delete_apps)
 	for app in delete_apps:
 		doc = frappe.get_doc('App', app)
 		doc.developer_flag = 1
 		doc.save()
 		doc.delete()
-	frappe.msgprint('Done')
-
-# def _bench_update(command, user):
-# 	terminal = Popen(command.split(), stdout=PIPE, cwd='..')
-# 	for c in iter(lambda: terminal.stdout.read(1), ''):
-# 		frappe.publish_realtime('terminal_output', c, user=user)
+	# frappe.msgprint('Done')
 
 def update_app_list():
 	app_list_file = 'apps.txt'
@@ -111,8 +107,8 @@ def sync_backups():
 	bakcup_dirs = [x['site_name']+' '+x['date']+' '+x['time']  for x in backup_dirs_data]
 	create_backups = list(set(bakcup_dirs) - set(backup_entries))
 	delete_backups = list(set(backup_entries) - set(bakcup_dirs))
-	frappe.msgprint('Please be patitent while enries for these backups are created')
-	frappe.msgprint(create_backups)
+	# frappe.msgprint('Please be patitent while enries for these backups are created')
+	# frappe.msgprint(create_backups)
 	for sitename_date_time in create_backups:
 		sitename_date_time = sitename_date_time.split(' ')
 		backup = {}
@@ -132,14 +128,14 @@ def sync_backups():
 			'file_path': backup['file_path'],
 			'developer_flag': 1})
 		doc.insert()
-	frappe.msgprint('Please be patitent while enries for these sites are deleted')
-	frappe.msgprint(delete_backups)
+	# frappe.msgprint('Please be patitent while enries for these sites are deleted')
+	# frappe.msgprint(delete_backups)
 	for backup in delete_backups:
 		doc = frappe.get_doc('Site Backup', backup)
 		doc.developer_flag = 1
 		doc.save()
 		doc.delete()
-	frappe.msgprint('Done')
+	# frappe.msgprint('Done')
 
 def update_backup_list():
 	all_sites = []
@@ -206,3 +202,4 @@ def sync_all():
 	sync_sites()
 	sync_apps()
 	sync_backups()
+	frappe.msgprint('Done')
