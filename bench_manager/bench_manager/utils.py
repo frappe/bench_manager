@@ -20,7 +20,7 @@ def console_command(doctype='', docname='', key='', bench_command='', app_name='
 		"new-site": ["bench new-site "+docname],
 		"drop-site": ["bench drop-site "+docname],
 		"switch-to-branch": ["git checkout "+branch_name],
-		"create-branch": ["git checkout -b "+branch_name],
+		"create-branch": ["git branch "+branch_name],
 		"delete-branch": ["git branch -D "+branch_name],
 		"git-init": ["git init", "git add .", "git commit -m 'Initial Commit'"],
 		"git-fetch": ["git fetch --all"],
@@ -45,7 +45,10 @@ def run_command(exec_str_list, cwd, doctype, key, docname=' ', shell=False):
 	try:
 		print exec_str_list
 		for str_to_exec in exec_str_list:
-			terminal = Popen(shlex.split(str_to_exec), shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
+			if shell == False:
+				terminal = Popen(shlex.split(str_to_exec), shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
+			else:
+				terminal = Popen(str_to_exec, shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
 			for c in iter(lambda: terminal.stdout.read(1), ''):
 				frappe.publish_realtime(key, c, user=frappe.session.user)
 				console_dump += c
@@ -57,6 +60,7 @@ def run_command(exec_str_list, cwd, doctype, key, docname=' ', shell=False):
 		_close_the_doc(start_time, key, console_dump, status='Failed', user=frappe.session.user)
 	finally:
 		frappe.enqueue('bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_all')
+		frappe.publish_realtime("version-update")
 	return 0
 
 
@@ -69,4 +73,5 @@ def _close_the_doc(start_time, key, console_dump, status, user):
 		final_console_dump += '\n'+i[-1]
 	frappe.set_value('Bench Manager Command', key, 'console', final_console_dump)
 	frappe.set_value('Bench Manager Command', key, 'status', status)
+	frappe.set_value('Bench Manager Command', key, 'time_taken', time_taken)
 	frappe.publish_realtime(key, '\n\n'+status+'!\nThe operation took '+str(time_taken)+' seconds', user=user)

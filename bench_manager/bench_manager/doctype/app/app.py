@@ -26,6 +26,9 @@ class App(Document):
 			if self.developer_flag == 0:
 				self.update_app_details()
 
+	def onload(self):
+		self.update_app_details()
+		
 	def get_attr(self, varname):
 		return getattr(self, varname)
 
