@@ -20,7 +20,7 @@ class SiteBackup(Document):
 			self.developer_flag = 0
 
 	def on_trash(self):
-		if self.developer_flag == 1:
+		if self.developer_flag == 0:
 			check_output('rm ' + self.file_path + '_database.sql*',
 				shell=True, cwd='..')
 			if self.public_file_backup:
@@ -31,7 +31,8 @@ class SiteBackup(Document):
 					shell=True, cwd='..')
 			frappe.msgprint('Backup deleted !')
 		else:
-			frappe.msgprint('Deleting the entry but not the Backup')
+			pass
+			# frappe.msgprint('Deleting the entry but not the Backup')
 
 @frappe.whitelist()
 def get_restore_options(doctype, docname):
