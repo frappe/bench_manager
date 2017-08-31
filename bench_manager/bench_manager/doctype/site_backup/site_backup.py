@@ -39,25 +39,21 @@ def get_restore_options(doctype, docname):
 	return [x['name'] for x in frappe.get_all('Site')]
 
 @frappe.whitelist()
-def restore_backup(doctype, docname, on_a_new_site, existing_site, new_site_name):
-	if on_a_new_site:
-		try:
-			doc = frappe.get_doc({'doctype': 'Site', 'site_name': new_site_name})
-			x = doc.insert()
-			backup = frapp.get_doc('Site Backup', docname)
-			str_to_exec = 'bench --site ' + existing_site + ' --force restore ' + backup.file_path + '_database.sql*'
-			if backup.public_file_backup:
-				str_to_exec += ' --with-public-files ../' + backup.file_path + '_files.tar'
-			if backup.private_file_backup:
-				str_to_exec += ' --with-private-files ../' + backup.file_path + '_private_files.tar'
-			terminal = check_output(str_to_exec, shell=True, cwd='..')
-		except:
-			frappe.throw('Something went wrong. Please contact tech support!')
-	else:
-		backup = frappe.get_doc('Site Backup', docname)
+def restore_backup(doctype, docname, on_a_new_site, existing_site, new_site_name, key):
+	backup = frappe.get_doc('Site Backup', docname)
+	if on_a_new_site == '1':
+		exec_str_list = ["bench new-site "+new_site_name]
 		str_to_exec = 'bench --site ' + existing_site + ' --force restore ' + backup.file_path + '_database.sql*'
 		if backup.public_file_backup:
 			str_to_exec += ' --with-public-files ../' + backup.file_path + '_files.tar'
 		if backup.private_file_backup:
 			str_to_exec += ' --with-private-files ../' + backup.file_path + '_private_files.tar'
-		terminal = check_output(str_to_exec, shell=True, cwd='..')
+		exec_str_list.append(str_to_exec)
+		frappe.enqueue('bench_manager.bench_manager.utils.run_command', exec_str_list=exec_str_list, cwd='..', doctype=doctype, key=key, docname=docname, shell=True)
+	else:
+		str_to_exec = 'bench --site ' + existing_site + ' --force restore ' + backup.file_path + '_database.sql*'
+		if backup.public_file_backup:
+			str_to_exec += ' --with-public-files ../' + backup.file_path + '_files.tar'
+		if backup.private_file_backup:
+			str_to_exec += ' --with-private-files ../' + backup.file_path + '_private_files.tar'
+		frappe.enqueue('bench_manager.bench_manager.utils.run_command', exec_str_list=[str_to_exec], cwd='..', doctype=doctype, key=key, docname=docname, shell=True)
