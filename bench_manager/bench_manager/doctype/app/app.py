@@ -28,7 +28,7 @@ class App(Document):
 
 	def onload(self):
 		self.update_app_details()
-		
+
 	def get_attr(self, varname):
 		return getattr(self, varname)
 
@@ -85,7 +85,7 @@ class App(Document):
 		if os.path.isfile('../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'):
 			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
 			with open(app_data_path, 'r') as f:
-				app_data = f.readlines()
+				app_data = frappe.as_unicode(f.readlines())
 			for data in app_data:
 				if 'Version:' in data:
 					self.version = ''.join(re.findall('Version: (.*?)\\n', data))

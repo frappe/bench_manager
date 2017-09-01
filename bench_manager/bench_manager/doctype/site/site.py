@@ -57,7 +57,9 @@ class Site(Document):
 				else:
 					console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site & get-app & install-erpnext')
 
-
+	def after_command(self, commands=None):
+		# sync
+		self.notify_update()
 
 	def on_trash(self):
 		if self.developer_flag == 0:
@@ -84,7 +86,7 @@ class Site(Document):
 
 		editable_site_config_fields = ["maintenance_mode", "pause_scheduler",
 			"developer_mode", "disable_website_cache"]
-		
+
 		for site_config_field in editable_site_config_fields:
 			if self.get_attr(site_config_field) == None or self.get_attr(site_config_field) == '':
 				if site_config_data.get(site_config_field) != None:
