@@ -2,6 +2,11 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('App', {
+	onload: function(frm) {
+		if (frm.doc.__islocal != 1){
+			frm.save();
+		}
+	}
 	refresh: function(frm) {
 		if (frm.doc.version == undefined) {
 			$('div.form-inner-toolbar').hide();
