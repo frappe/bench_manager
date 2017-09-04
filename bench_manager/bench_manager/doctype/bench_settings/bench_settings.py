@@ -67,15 +67,13 @@ def sync_apps():
 	delete_apps = list(set(app_entries) - set(app_dirs))
 	create_apps = filter(lambda a: a != '', create_apps)
 	delete_apps = filter(lambda a: a != '', delete_apps)
-	# frappe.msgprint('Please be patitent while enries for these apps are created')
-	# frappe.msgprint(create_apps)
+
 	for app in create_apps:
 		doc = frappe.get_doc({'doctype': 'App', 'app_name': app,
 			'app_description': 'lorem ipsum', 'app_publisher': 'lorem ipsum',
 			'app_email': 'lorem ipsum', 'developer_flag':1})
 		doc.insert()
-	# frappe.msgprint('Please be patitent while enries for these apps are deleted')
-	# frappe.msgprint(delete_apps)
+		
 	for app in delete_apps:
 		doc = frappe.get_doc('App', app)
 		doc.developer_flag = 1
