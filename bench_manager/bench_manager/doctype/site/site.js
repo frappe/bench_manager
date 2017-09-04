@@ -2,6 +2,28 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Site', {
+	onload: function(frm) {
+		if (frm.doc.__islocal != 1){
+			frm.save();
+		}
+		frappe.realtime.on("Bench-Manager:reload-page", () => {
+			frm.reload_doc();
+		});
+		frappe.realtime.on("Bench-Manager:drop-site", () => {
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
+			frappe.call({
+				method: 'bench_manager.bench_manager.utils.console_command',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name,
+					key: key,
+					bench_command: 'drop-site'
+				},
+				btn: this
+			});
+		});
+	},
 	validate: function(frm) {
 		if (frm.doc.db_name == undefined) {
 			let key = frappe.datetime.get_datetime_as_string();
@@ -10,21 +32,6 @@ frappe.ui.form.on('Site', {
 		}
 	},
 	refresh: function(frm) {
-		$("a.grey-link:contains('Delete')").click(function() {
-			$("button.btn:contains('No')").click()
-			let key = frappe.datetime.get_datetime_as_string();
-			console_dialog(key);
-			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.site.site.ui_on_trash',
-				args: {
-					doctype: frm.doctype,
-					docname: frm.doc.name,
-					key: key
-				},
-				btn: this
-			});
-			
-		});
 		if (frm.doc.db_name == undefined) {
 			$('div.form-inner-toolbar').hide();
 		} else {
@@ -51,22 +58,6 @@ frappe.ui.form.on('Site', {
 				});
 			});
 		}
-		// let multi_function_buttons = {
-		// 	'Install App': {
-		// 		method_one: 'bench_manager.bench_manager.doctype.site.site.get_installable_apps',
-		// 		method_two: 'bench_manager.bench_manager.doctype.site.site.install_app',
-		// 		fields: {'fieldname': 'installable_apps', 'fieldtype': 'Select', options: r.message},
-		// 		button_name: 'Install',
-		// 		app_name: cur_dialog.fields_dict.installable_apps.value
-		// 	},
-		// 	'Uninstall App': {
-		// 		method_one: 'bench_manager.bench_manager.doctype.site.site.get_removable_apps',
-		// 		method_two: 'bench_manager.bench_manager.doctype.site.site.remove_app',
-		// 		fields: {'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message},
-		// 		button_name: 'Remove',
-		// 		app_name: cur_dialog.fields_dict.removable_apps.value
-		// 	},
-		// };
 		frm.add_custom_button(__('Install App'), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.get_installable_apps',
