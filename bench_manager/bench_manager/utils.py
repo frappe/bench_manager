@@ -34,20 +34,21 @@ def console_command(doctype='', docname='', key='', bench_command='', app_name='
 		exec_str_list=exec_str_list, cwd=cwd, doctype=doctype, key=key, docname=docname, after_command=after_command)
 
 @frappe.whitelist()
-def run_command(commands, key, doctype, docname=' ', cwd='..', shell=False, after_command=None):
+def run_command(exec_str_list, cwd, doctype, key, docname=' ', shell=False, after_command=None):
 	start_time = frappe.utils.time.time()
 	console_dump = ''
 	doc = frappe.get_doc({'doctype': 'Bench Manager Command', 'key': key, 'source': doctype+': '+docname,
-		 'command': ' && '.join(commands), 'console': console_dump, 'status': 'Ongoing'})
+		 'command': ' && '.join(exec_str_list), 'console': console_dump, 'status': 'Ongoing'})
 	doc.insert()
 	frappe.db.commit()
-	frappe.publish_realtime(key, "Ececuting Command:\n"+' && '.join(commands)+"\n\n", user=frappe.session.user)
+	frappe.publish_realtime(key, "Ececuting Command:\n"+' && '.join(exec_str_list)+"\n\n", user=frappe.session.user)
 	try:
-		for command in commands:
+		print exec_str_list
+		for str_to_exec in exec_str_list:
 			if shell == False:
-				terminal = Popen(shlex.split(command), shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
+				terminal = Popen(shlex.split(str_to_exec), shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
 			else:
-				terminal = Popen(command, shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
+				terminal = Popen(str_to_exec, shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
 			for c in iter(lambda: terminal.stdout.read(1), ''):
 				frappe.publish_realtime(key, c, user=frappe.session.user)
 				console_dump += c
@@ -62,7 +63,7 @@ def run_command(commands, key, doctype, docname=' ', cwd='..', shell=False, afte
 		# hack: frappe.db.commit() to make sure the log created is robust,
 		# and the _refresh throws an error if the doc is deleted 
 		frappe.enqueue('bench_manager.bench_manager.utils._refresh',
-			doctype=doctype, docname=docname, commands=commands)
+			doctype=doctype, docname=docname, exec_str_list=exec_str_list)
 
 def _close_the_doc(start_time, key, console_dump, status, user):
 	time_taken = frappe.utils.time.time() - start_time
@@ -76,5 +77,5 @@ def _close_the_doc(start_time, key, console_dump, status, user):
 	frappe.set_value('Bench Manager Command', key, 'time_taken', time_taken)
 	frappe.publish_realtime(key, '\n\n'+status+'!\nThe operation took '+str(time_taken)+' seconds', user=user)
 
-def _refresh(doctype, docname, commands):
-	frappe.get_doc(doctype, docname).run_method('after_command', commands=commands)
+def _refresh(doctype, docname, exec_str_list):
+	frappe.get_doc(doctype, docname).run_method('after_command', commands=exec_str_list)

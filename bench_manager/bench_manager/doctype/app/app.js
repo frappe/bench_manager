@@ -24,13 +24,13 @@ frappe.ui.form.on('App', {
 				console_dialog(key);
 				frm.doc.is_git_repo = true;
 				frappe.call({
-					method: 'bench_manager.bench_manager.utils.run_command',
+					method: 'bench_manager.bench_manager.utils.console_command',
 					args: {
-						commands: ["git init", "git add .", "git commit -m 'Initial Commit'"],
-						cwd: '../apps/'+frm.doc.name,
 						doctype: frm.doctype,
 						docname: frm.doc.name,
-						key: key
+						key: key,
+						bench_command: 'git-init',
+						cwd: '../apps/'+frm.doc.name
 					},
 					btn: this,
 					callback: function(r) {
