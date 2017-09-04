@@ -53,7 +53,7 @@ class Site(Document):
 				console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site')
 			else:
 				with open('apps.txt', 'r') as f:
-				    app_list = f.read()
+				    app_list = frappe.as_unicode(f.read())
 				if 'erpnext' in app_list:
 					console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site & install-erpnext')
 				else:
@@ -134,7 +134,7 @@ class Site(Document):
 def get_installable_apps(doctype, docname):
 	app_list_file = 'apps.txt'
 	with open(app_list_file, "r") as f:
-		apps = f.read().split('\n')
+		apps = frappe.as_unicode(f.read()).split('\n')
 	installed_apps = frappe.get_doc(doctype, docname).app_list.split('\n')
 	installable_apps = set(apps) - set(installed_apps)
 	return [x for x in installable_apps]

@@ -71,7 +71,7 @@ class App(Document):
 			# todo: check if the app is linked to any site
 			apps_file = 'apps.txt'
 			with open(apps_file, 'r') as f:
-				apps = f.readlines()
+				apps = frappe.as_unicode(f.readlines())
 			try:
 				apps.remove(self.app_name)
 			except:
@@ -88,7 +88,7 @@ class App(Document):
 		if os.path.isfile('../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'):
 			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
 			with open(app_data_path, 'r') as f:
-				app_data = f.readlines()
+				app_data = frappe.as_unicode(f.readlines())
 			for data in app_data:
 				if 'Version:' in data:
 					self.version = ''.join(re.findall('Version: (.*?)\\n', data))
