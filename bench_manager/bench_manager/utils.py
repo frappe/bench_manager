@@ -41,6 +41,7 @@ def run_command(exec_str_list, cwd, doctype, key, docname=' ', shell=False, afte
 		 'command': ' && '.join(exec_str_list), 'console': console_dump, 'status': 'Ongoing'})
 	doc.insert()
 	frappe.db.commit()
+	frappe.publish_realtime(key, "Ececuting Command:\n"+' && '.join(exec_str_list)+"\n\n", user=frappe.session.user)
 	try:
 		print exec_str_list
 		for str_to_exec in exec_str_list:
