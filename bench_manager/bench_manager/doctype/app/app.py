@@ -35,6 +35,9 @@ class App(Document):
 	def set_attr(self, varname, varval):
 		return setattr(self, varname, varval)
 
+	def after_command(self, commands=None):
+		frappe.publish_realtime("Bench-Manager:reload-page")
+
 	def create_app(self, key):
 		app_list = check_output("cd ../apps && ls",
 			shell=True).split("\n")

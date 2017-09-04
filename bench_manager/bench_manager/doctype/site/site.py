@@ -21,9 +21,6 @@ class Site(Document):
 	def set_attr(self, varname, varval):
 		return setattr(self, varname, varval)
 
-	def onload(self):
-		self.sync_site_config()
-
 	def validate(self):
 		if self.get("__islocal"):
 			if self.developer_flag == 0:
@@ -31,14 +28,19 @@ class Site(Document):
 			site_config_path = self.site_name+'/site_config.json'
 			while not os.path.isfile(site_config_path):
 				time.sleep(2)
-			self.developer_flag = 0
 			self.sync_site_config()
 			self.app_list = 'frappe'
+			if self.developer_flag == 1:
+				self.update_app_list()
+			self.developer_flag = 0
 		else:
 			if self.developer_flag == 0:
 				self.update_app_list()
 				self.update_site_config()
 				self.sync_site_config()
+
+	def after_command(self, commands=None):
+		frappe.publish_realtime("Bench-Manager:reload-page")
 
 	def create_site(self, key):
 		site_list = check_output("ls".split()).split("\n")
@@ -57,11 +59,10 @@ class Site(Document):
 				else:
 					console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site & get-app & install-erpnext')
 
-
-
 	def on_trash(self):
 		if self.developer_flag == 0:
-			frappe.throw("Please go inside the site and try deleting again")
+			# frappe.throw("Please go inside the site and try deleting again")
+			frappe.publish_realtime("Bench-Manager:drop-site", {"site_name": self.site_name}, user=frappe.session.user)
 		else:
 			pass
 
@@ -144,11 +145,11 @@ def get_removable_apps(doctype, docname):
 	removable_apps.remove('frappe')
 	return removable_apps
 
-@frappe.whitelist()
-def ui_on_trash(doctype, docname, key):
-	site_list = check_output("ls", shell=True).split("\n")
-	if docname in site_list:
-		console_command(doctype=doctype, docname=docname, key=key, bench_command='drop-site')
-	else:
-		frappe.throw("Site: "+ docname + " doesn't exists! Please\
-			click sync to refresh your site list!")
+# @frappe.whitelist()
+# def ui_on_trash(doctype, docname, key):
+# 	site_list = check_output("ls", shell=True).split("\n")
+# 	if docname in site_list:
+# 		console_command(doctype=doctype, docname=docname, key=key, bench_command='drop-site')
+# 	else:
+# 		frappe.throw("Site: "+ docname + " doesn't exists! Please\
+# 			click sync to refresh your site list!")
