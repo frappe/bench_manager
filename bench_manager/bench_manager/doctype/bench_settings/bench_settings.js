@@ -16,6 +16,43 @@ frappe.ui.form.on('Bench Settings', {
 		});
 	},
 	refresh: function(frm) {
+		frm.add_custom_button(__('New Site'), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
+				args: {
+					doctype: frm.doctype,
+				},
+				btn: this,
+				callback: function(r){
+					var dialog = new frappe.ui.Dialog({
+						title: 'Create Site',
+						fields: [
+							{fieldname: 'site_name', fieldtype: 'Data', label: "Site Name"},
+							{fieldname: 'install_erpnext', fieldtype: 'Check', label: "Install ERPNext"},
+							{'fieldname': 'adminPass', 'fieldtype': 'Password',
+								'label': 'Administrator Password', 'reqd': true,
+								'default': (r.message[2] ? r.message[2] :'admin')},
+							{'fieldname': 'mysqlPass', 'fieldtype': 'Password',
+								'label': 'MySQL Password', 'reqd': true,
+								'default': r.message[1]},
+						]
+					});
+					dialog.set_primary_action(__("Validate"), () => {
+						frappe.call({
+							method: 'bench_manager.bench_manager.doctype.site.site.verify_mysql_pass',
+							args: {
+								password: dialog.fields_dict.mysqlPass.value,
+							},
+							callback: function(r){
+								frappe.msgprint(r.message);
+							}
+						});
+					});
+					dialog.show();
+
+				}
+			});
+		});
 		frm.add_custom_button(__("Update"), function(){
 			let key = frappe.datetime.get_datetime_as_string();
 			console_dialog(key);
