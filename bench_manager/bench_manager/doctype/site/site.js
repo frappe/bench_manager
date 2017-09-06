@@ -12,9 +12,7 @@ frappe.ui.form.on('Site', {
 				},
 				btn: this,
 				callback: function(r){
-					console.log(r['message'])
-					// frappe.msgprint(r['message'])
-
+					console.log(r['message']);
 					var dialog = new frappe.ui.Dialog({
 						title: 'Please enter these passwords',
 						fields: [
