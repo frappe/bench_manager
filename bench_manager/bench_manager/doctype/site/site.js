@@ -12,16 +12,18 @@ frappe.ui.form.on('Site', {
 				},
 				btn: this,
 				callback: function(r){
+					console.log(r['message'])
+					// frappe.msgprint(r['message'])
 
 					var dialog = new frappe.ui.Dialog({
 						title: 'Please enter these passwords',
 						fields: [
 							{'fieldname': 'mysqlPass', 'fieldtype': 'Password',
-								'label': 'MySQL Password', 'reqd': Number(r.message[0][0] != 'T'),
-								'default': r.message[1]},
+								'label': 'MySQL Password', 'reqd': Number(r['message']['condition'][0] != 'T'),
+								'default': r['message']['root_password']},
 							{'fieldname': 'adminPass', 'fieldtype': 'Password',
-								'label': 'Administrator Password', 'reqd': Number(r.message[0][1] != 'T'),
-								'default': (r.message[2] ? r.message[2] :'admin')}
+								'label': 'Administrator Password', 'reqd': Number(r['message']['condition'][1] != 'T'),
+								'default': (r['message']['admin_password'] ? r['message']['admin_password'] :'admin')}
 						],
 					});
 
