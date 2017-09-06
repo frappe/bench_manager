@@ -20,36 +20,53 @@ frappe.ui.form.on('Bench Settings', {
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
 				args: {
-					doctype: frm.doctype,
+					doctype: frm.doctype
 				},
 				btn: this,
 				callback: function(r){
 					var dialog = new frappe.ui.Dialog({
-						title: 'Create Site',
 						fields: [
 							{fieldname: 'site_name', fieldtype: 'Data', label: "Site Name"},
 							{fieldname: 'install_erpnext', fieldtype: 'Check', label: "Install ERPNext"},
-							{'fieldname': 'adminPass', 'fieldtype': 'Password',
+							{'fieldname': 'admin_password', 'fieldtype': 'Password',
 								'label': 'Administrator Password', 'reqd': true,
-								'default': (r.message[2] ? r.message[2] :'admin')},
-							{'fieldname': 'mysqlPass', 'fieldtype': 'Password',
+								'default': (r['message']['admin_password'] ? r['message']['admin_password'] :'admin')},
+							{'fieldname': 'mysql_password', 'fieldtype': 'Password',
 								'label': 'MySQL Password', 'reqd': true,
-								'default': r.message[1]},
-						]
+								'default': r['message']['root_password']}
+						],
 					});
-					dialog.set_primary_action(__("Validate"), () => {
+					dialog.set_primary_action(__("Create"), () => {
+						let key = frappe.datetime.get_datetime_as_string();
+						let install_erpnext;
+						if (dialog.fields_dict.install_erpnext.last_value != 1){
+							install_erpnext = "true";
+						} else {
+							install_erpnext = "false";
+						}
+						// frappe.msgprint(dialog.fields_dict.site_name.value);
+						// frappe.msgprint(dialog.fields_dict.admin_password.value);
+						// frappe.msgprint(dialog.fields_dict.mysql_password.value);
+						// frappe.msgprint(install_erpnext);
+						// frappe.msgprint(key);
 						frappe.call({
-							method: 'bench_manager.bench_manager.doctype.site.site.verify_mysql_pass',
+							method: 'bench_manager.bench_manager.doctype.site.site.verify_new_site',
 							args: {
-								password: dialog.fields_dict.mysqlPass.value,
+								site_name: dialog.fields_dict.site_name.value,
+								admin_password: dialog.fields_dict.admin_password.value,
+								mysql_password: dialog.fields_dict.mysql_password.value,
+								install_erpnext: install_erpnext,
+								key: key
 							},
 							callback: function(r){
-								frappe.msgprint(r.message);
+								frappe.msgprint("cb");
+								if (r.message == "console"){
+									console_dialog(key);
+								} 
 							}
 						});
 					});
 					dialog.show();
-
 				}
 			});
 		});
