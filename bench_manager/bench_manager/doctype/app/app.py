@@ -27,7 +27,7 @@ class App(Document):
 
 	def onload(self):
 		self.update_app_details()
-		
+
 	def get_attr(self, varname):
 		return getattr(self, varname)
 
@@ -70,7 +70,7 @@ class App(Document):
 			# todo: check if the app is linked to any site
 			apps_file = 'apps.txt'
 			with open(apps_file, 'r') as f:
-				apps = frappe.as_unicode(f.readlines())
+				apps = f.readlines()
 			try:
 				apps.remove(self.app_name)
 			except:

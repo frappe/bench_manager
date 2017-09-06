@@ -60,6 +60,7 @@ frappe.ui.form.on('Site', {
 					doctype: frm.doctype,
 					docname: frm.doc.name,
 					key: key,
+					commands: "bench drop-site " + frm.doc.name,
 					bench_command: 'drop-site'
 				},
 				btn: this
@@ -80,9 +81,9 @@ frappe.ui.form.on('Site', {
 			$('div.form-inner-toolbar').show();
 		}
 		let single_function_buttons = {
-			'Migrate': 'migrate',
-			'Reinstall': 'reinstall',
-			'Backup Site': 'backup_site'
+			'Migrate': ' migrate',
+			'Reinstall': ' reinstall --yes',
+			'Backup Site': ' backup --with-files'
 		};
 		for (let bench_command in single_function_buttons){
 			frm.add_custom_button(__(bench_command), function(){
@@ -94,7 +95,7 @@ frappe.ui.form.on('Site', {
 						doctype: frm.doctype,
 						docname: frm.doc.name,
 						key: key,
-						bench_command: single_function_buttons[bench_command]
+						commands: "bench --site " + frm.doc.name + single_function_buttons[bench_command]
 					},
 					btn: this
 				});
@@ -123,9 +124,8 @@ frappe.ui.form.on('Site', {
 							args: {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
-								app_name: cur_dialog.fields_dict.installable_apps.value,
 								key: key,
-								bench_command: 'install_app'
+								commands: "bench --site "+ frm.doc.name + " install-app " + cur_dialog.fields_dict.installable_apps.value
 							},
 							callback: function(){
 								dialog.hide();
@@ -159,9 +159,8 @@ frappe.ui.form.on('Site', {
 							args: {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
-								app_name: cur_dialog.fields_dict.removable_apps.value,
 								key: key,
-								bench_command: 'remove_app'
+								comamnds: "bench --site "+ frm.doc.name + " uninstall-app " + cur_dialog.fields_dict.removable_apps.value + " --yes"
 							},
 							callback: function(){
 								dialog.hide();

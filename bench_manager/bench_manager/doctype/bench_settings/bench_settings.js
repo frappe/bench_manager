@@ -24,27 +24,12 @@ frappe.ui.form.on('Bench Settings', {
 				args: {
 					doctype: frm.doctype,
 					docname: frm.doc.name,
-					bench_command: 'update',
+					commands: "bench update",
 					key: key
 				},
 				btn: this
 			});
 		});
-		// frm.add_custom_button(__('Sync Backups'), () => {
-		// 	frappe.call({
-		// 		method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_backups'
-		// 	});
-		// });
-		// frm.add_custom_button(__('Sync Sites'), () => {
-		// 	frappe.call({
-		// 		method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_sites'
-		// 	});
-		// });
-		// frm.add_custom_button(__('Sync Apps'), () => {
-		// 	frappe.call({
-		// 		method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_apps'
-		// 	});
-		// });
 		frm.add_custom_button(__('Sync'), () => {
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_all'
