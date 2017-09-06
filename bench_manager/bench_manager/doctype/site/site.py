@@ -148,26 +148,26 @@ def get_removable_apps(doctype, docname):
 @frappe.whitelist()
 def pass_exists(doctype, docname=''):
 	#return string convention 'TT',<root_password>,<admin_password>
-	ret = ['','','']
+	ret = {'condition':'', 'root_password':'', 'admin_password':''}
 	common_site_config_path = 'common_site_config.json'
 	with open(common_site_config_path, 'r') as f:
 		common_site_config_data = json.load(f)
 
-	ret[0] += 'T' if common_site_config_data.get('root_password') else 'F'
-	ret[1] = common_site_config_data.get('root_password')
+	ret['condition'] += 'T' if common_site_config_data.get('root_password') else 'F'
+	ret['root_password'] = common_site_config_data.get('root_password')
 
-	ret[0] += 'T' if common_site_config_data.get('admin_password') else 'F'
-	ret[2] = common_site_config_data.get('admin_password')
+	ret['condition'] += 'T' if common_site_config_data.get('admin_password') else 'F'
+	ret['admin_password'] = common_site_config_data.get('admin_password')
 
-	if docname == '' or ret[0] == 'TT': #Prompt reached here on new-site
+	if docname == '' or ret['condition'] == 'TT': #Prompt reached here on new-site
 		return ret
 
 	site_config_path = docname+'/site_config.json'
 	with open(site_config_path, 'r') as f:
 		site_config_data = json.load(f)
 	#FF FT TF
-	ret[0][1] = 'T' if site_config_data.get('admin_password') else 'F'
-	ret[2] = site_config_data.get('admin_password')
+	ret['condition'][1] = 'T' if site_config_data.get('admin_password') else 'F'
+	ret['admin_password'] = site_config_data.get('admin_password')
 	return ret
 
 
