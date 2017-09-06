@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
-import os, re, json, time
+import os, re, json, time, _mysql
 from  bench_manager.bench_manager.utils import console_command
 
 class Site(Document):
@@ -85,7 +85,7 @@ class Site(Document):
 
 		editable_site_config_fields = ["maintenance_mode", "pause_scheduler",
 			"developer_mode", "disable_website_cache"]
-		
+
 		for site_config_field in editable_site_config_fields:
 			if self.get_attr(site_config_field) == None or self.get_attr(site_config_field) == '':
 				if site_config_data.get(site_config_field) != None:
@@ -145,11 +145,36 @@ def get_removable_apps(doctype, docname):
 	removable_apps.remove('frappe')
 	return removable_apps
 
-# @frappe.whitelist()
-# def ui_on_trash(doctype, docname, key):
-# 	site_list = check_output("ls", shell=True).split("\n")
-# 	if docname in site_list:
-# 		console_command(doctype=doctype, docname=docname, key=key, bench_command='drop-site')
-# 	else:
-# 		frappe.throw("Site: "+ docname + " doesn't exists! Please\
-# 			click sync to refresh your site list!")
+@frappe.whitelist()
+def pass_exists(doctype, docname=''):
+	#return string convention 'TT',<root_password>,<admin_password>
+	ret = ['','','']
+	common_site_config_path = 'common_site_config.json'
+	with open(common_site_config_path, 'r') as f:
+		common_site_config_data = json.load(f)
+
+	ret[0] += 'T' if common_site_config_data.get('root_password') else 'F'
+	ret[1] = common_site_config_data.get('root_password')
+
+	ret[0] += 'T' if common_site_config_data.get('admin_password') else 'F'
+	ret[2] = common_site_config_data.get('admin_password')
+
+	if docname == '' or ret[0] == 'TT': #Prompt reached here on new-site
+		return ret
+
+	site_config_path = docname+'/site_config.json'
+	with open(site_config_path, 'r') as f:
+		site_config_data = json.load(f)
+	#FF FT TF
+	ret[0][1] = 'T' if site_config_data.get('admin_password') else 'F'
+	ret[2] = site_config_data.get('admin_password')
+	return ret
+
+
+@frappe.whitelist()
+def verify_mysql_pass(password):
+	try:
+		db = _mysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=password)
+		return "Hoorah!!!"
+	except:
+		return "Wrong MySQL password entered please re-enter the correct password !"

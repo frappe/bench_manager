@@ -3,6 +3,46 @@
 
 frappe.ui.form.on('Site', {
 	onload: function(frm) {
+		if (frm.doc.__islocal == 1){
+			let mysqlPass;
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
+				args: {
+					doctype: frm.doctype,
+				},
+				btn: this,
+				callback: function(r){
+
+					var dialog = new frappe.ui.Dialog({
+						title: 'Please enter these passwords',
+						fields: [
+							{'fieldname': 'mysqlPass', 'fieldtype': 'Password',
+								'label': 'MySQL Password', 'reqd': Number(r.message[0][0] != 'T'),
+								'default': r.message[1]},
+							{'fieldname': 'adminPass', 'fieldtype': 'Password',
+								'label': 'Administrator Password', 'reqd': Number(r.message[0][1] != 'T'),
+								'default': (r.message[2] ? r.message[2] :'admin')}
+						],
+					});
+
+					dialog.set_primary_action(__("Validate"), () => {
+						frappe.call({
+							method: 'bench_manager.bench_manager.doctype.site.site.verify_mysql_pass',
+							args: {
+								password: dialog.fields_dict.mysqlPass.value,
+							},
+							callback: function(r){
+								frappe.msgprint(r.message)
+							}
+						});
+					});
+
+					dialog.show();
+
+				}
+			});
+
+		}
 		if (frm.doc.__islocal != 1){
 			frm.save();
 		}
@@ -83,7 +123,7 @@ frappe.ui.form.on('Site', {
 								docname: frm.doc.name,
 								app_name: cur_dialog.fields_dict.installable_apps.value,
 								key: key,
-								bench_command: 'install_app'								
+								bench_command: 'install_app'
 							},
 							callback: function(){
 								dialog.hide();
