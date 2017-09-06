@@ -84,7 +84,7 @@ def sync_apps():
 def update_app_list():
 	app_list_file = 'apps.txt'
 	with open(app_list_file, "r") as f:
-		apps = frappe.as_unicode(f.read()).split('\n')
+		apps = f.read().split('\n')
 	return apps
 
 def update_site_list():

@@ -50,14 +50,23 @@ class Site(Document):
 				refresh your site list!")
 		else:
 			if not self.install_erpnext:
-				console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site')
+				console_command(doctype=self.doctype,
+					docname=self.site_name,
+					key=key,
+					commands="bench new-site {}".format(self.site_name))
 			else:
 				with open('apps.txt', 'r') as f:
-				    app_list = frappe.as_unicode(f.read())
+				    app_list = f.read()
 				if 'erpnext' in app_list:
-					console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site & install-erpnext')
+					console_command(doctype=self.doctype,
+						docname = self.site_name,
+						key = key,
+						commands = "bench new-site {}\rbench --site {} install-app erpnext".format(docname, docname))
 				else:
-					console_command(doctype=self.doctype, docname=self.site_name, key=key, bench_command='new-site & get-app & install-erpnext')
+					console_command(doctype=self.doctype,
+						docname=self.site_name,
+						key=key,
+						commands = "bench new-site {}\rbench get-app erpnext https://github.com/frappe/erpnext.git\rbench --site {} install-app erpnext".format(docname, docname))
 
 	def on_trash(self):
 		if self.developer_flag == 0:
@@ -134,7 +143,7 @@ class Site(Document):
 def get_installable_apps(doctype, docname):
 	app_list_file = 'apps.txt'
 	with open(app_list_file, "r") as f:
-		apps = frappe.as_unicode(f.read()).split('\n')
+		apps = f.read().split('\n')
 	installed_apps = frappe.get_doc(doctype, docname).app_list.split('\n')
 	installable_apps = set(apps) - set(installed_apps)
 	return [x for x in installable_apps]
@@ -178,3 +187,4 @@ def verify_mysql_pass(password):
 		return "Hoorah!!!"
 	except:
 		return "Wrong MySQL password entered please re-enter the correct password !"
+	return removable_apps

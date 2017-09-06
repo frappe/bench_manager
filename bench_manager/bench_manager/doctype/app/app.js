@@ -29,7 +29,7 @@ frappe.ui.form.on('App', {
 						doctype: frm.doctype,
 						docname: frm.doc.name,
 						key: key,
-						bench_command: 'git-init',
+						commands: "git init\rgit add .\rgit commit -m 'Initial Commit'",
 						cwd: '../apps/'+frm.doc.name
 					},
 					btn: this,
@@ -39,7 +39,8 @@ frappe.ui.form.on('App', {
 				});
 			});
 		} else {
-			frm.add_custom_button(__('Switch Branch'), function(){
+
+		    frm.add_custom_button(__('Switch Branch'), function(){
 				frappe.call({
 					method: 'bench_manager.bench_manager.doctype.app.app.get_branches',
 					args: {
@@ -63,9 +64,8 @@ frappe.ui.form.on('App', {
 								args: {
 									doctype: frm.doctype,
 									docname: frm.doc.name,
-									branch_name: cur_dialog.fields_dict.switchable_branches.value,
 									key: key,
-									bench_command: 'switch-to-branch',
+									commands: "git checkout " + cur_dialog.fields_dict.switchable_branches.value,
 									cwd: '../apps/'+frm.doc.name
 								},
 								callback: function(){
@@ -92,9 +92,8 @@ frappe.ui.form.on('App', {
 						args: {
 							doctype: frm.doctype,
 							docname: frm.doc.name,
-							branch_name: cur_dialog.fields_dict.new_branch_name.value,
 							key: key,
-							bench_command: 'create-branch',
+							commands: "git branch "+cur_dialog.fields_dict.new_branch_name.value,
 							cwd: '../apps/'+frm.doc.name
 						},
 						callback: function(){
@@ -128,9 +127,8 @@ frappe.ui.form.on('App', {
 								args: {
 									doctype: frm.doctype,
 									docname: frm.doc.name,
-									branch_name: cur_dialog.fields_dict.delete_branch_name.value,
 									key: key,
-									bench_command: 'delete-branch',
+									commands: "git branch -D "+cur_dialog.fields_dict.delete_branch_name.value,
 									cwd: '../apps/'+frm.doc.name
 								},
 								callback: function(){
@@ -151,7 +149,7 @@ frappe.ui.form.on('App', {
 						doctype: frm.doctype,
 						docname: frm.doc.name,
 						key: key,
-						bench_command: 'git-fetch',
+						commands: "git fetch --all",
 						cwd: '../apps/'+frm.doc.name
 					}
 				});
