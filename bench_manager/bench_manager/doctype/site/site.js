@@ -3,66 +3,11 @@
 
 frappe.ui.form.on('Site', {
 	onload: function(frm) {
-		if (frm.doc.__islocal == 1){
-			let mysqlPass;
-			frappe.call({
-				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
-				args: {
-					doctype: frm.doctype,
-				},
-				btn: this,
-				callback: function(r){
-					console.log(r['message']);
-					var dialog = new frappe.ui.Dialog({
-						title: 'Please enter these passwords',
-						fields: [
-							{'fieldname': 'mysqlPass', 'fieldtype': 'Password',
-								'label': 'MySQL Password', 'reqd': Number(r['message']['condition'][0] != 'T'),
-								'default': r['message']['root_password']},
-							{'fieldname': 'adminPass', 'fieldtype': 'Password',
-								'label': 'Administrator Password', 'reqd': Number(r['message']['condition'][1] != 'T'),
-								'default': (r['message']['admin_password'] ? r['message']['admin_password'] :'admin')}
-						],
-					});
-
-					dialog.set_primary_action(__("Validate"), () => {
-						frappe.call({
-							method: 'bench_manager.bench_manager.doctype.site.site.verify_mysql_pass',
-							args: {
-								password: dialog.fields_dict.mysqlPass.value,
-							},
-							callback: function(r){
-								frappe.msgprint(r.message)
-							}
-						});
-					});
-
-					dialog.show();
-
-				}
-			});
-
-		}
-		if (frm.doc.__islocal != 1){
-			frm.save();
-		}
+		// if (frm.doc.__islocal != 1){
+		// 	frm.save();
+		// }
 		frappe.realtime.on("Bench-Manager:reload-page", () => {
 			frm.reload_doc();
-		});
-		frappe.realtime.on("Bench-Manager:drop-site", () => {
-			let key = frappe.datetime.get_datetime_as_string();
-			console_dialog(key);
-			frappe.call({
-				method: 'bench_manager.bench_manager.utils.console_command',
-				args: {
-					doctype: frm.doctype,
-					docname: frm.doc.name,
-					key: key,
-					commands: "bench drop-site " + frm.doc.name,
-					bench_command: 'drop-site'
-				},
-				btn: this
-			});
 		});
 	},
 	validate: function(frm) {
@@ -73,6 +18,7 @@ frappe.ui.form.on('Site', {
 		}
 	},
 	refresh: function(frm) {
+		$('a.grey-link:contains("Delete")').hide();
 		if (frm.doc.db_name == undefined) {
 			$('div.form-inner-toolbar').hide();
 		} else {
@@ -80,7 +26,6 @@ frappe.ui.form.on('Site', {
 		}
 		let single_function_buttons = {
 			'Migrate': ' migrate',
-			'Reinstall': ' reinstall --yes',
 			'Backup Site': ' backup --with-files'
 		};
 		for (let bench_command in single_function_buttons){
@@ -99,6 +44,45 @@ frappe.ui.form.on('Site', {
 				});
 			});
 		}
+		frm.add_custom_button(__("Reinstall"), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name
+				},
+				btn: this,
+				callback: function(r){
+					var dialog = new frappe.ui.Dialog({
+						title: "Are you sure?",
+						fields: [
+							{fieldname: 'admin_password', fieldtype: 'Password',
+								label: 'Administrator Password', reqd: r['message']['condition'][0] != 'T',
+								default: (r['message']['admin_password'] ? r['message']['admin_password'] :'admin'),
+								depends_on: `eval:${String(r['message']['condition'][0] != 'T')}`}
+						]
+					});
+					dialog.set_primary_action(__("Reinstall"), () => {
+						let key = frappe.datetime.get_datetime_as_string();
+						console_dialog(key);
+						frappe.call({
+							method: 'bench_manager.bench_manager.utils.console_command',
+							args: {
+								doctype: frm.doctype,
+								docname: frm.doc.name,
+								key: key,
+								commands: `bench --site ${frm.doc.name} reinstall --yes --admin-password ${dialog.fields_dict.admin_password.value}`
+							},
+							btn: this,
+							callback: () => {
+								dialog.hide();
+							}
+						});
+					});
+					dialog.show();
+				}
+			});
+		});
 		frm.add_custom_button(__('Install App'), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.get_installable_apps',
@@ -162,6 +146,60 @@ frappe.ui.form.on('Site', {
 							},
 							callback: function(){
 								dialog.hide();
+							}
+						});
+					});
+					dialog.show();
+				}
+			});
+		});
+		frm.add_custom_button(__('Drop Site'), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
+				args: {
+					doctype: frm.doctype,
+					docname: frm.doc.name
+				},
+				btn: this,
+				callback: function(r){
+					var dialog = new frappe.ui.Dialog({
+						title: "Are you sure?",
+						fields: [
+							{fieldname: 'admin_password', fieldtype: 'Password',
+								label: 'Administrator Password', reqd: r['message']['condition'][0] != 'T',
+								default: (r['message']['admin_password'] ? r['message']['admin_password'] :'admin'),
+								depends_on: `eval:${String(r['message']['condition'][0] != 'T')}`},
+							{fieldname: 'mysql_password', fieldtype: 'Password',
+								label: 'MySQL Password', reqd: r['message']['condition'][1] != 'T',
+								default: r['message']['root_password'], depends_on: `eval:${String(r['message']['condition'][1] != 'T')}`}
+						],
+					});
+					dialog.set_primary_action(__("Drop"), () => {
+						let key = frappe.datetime.get_datetime_as_string();
+						frappe.call({
+							method: 'bench_manager.bench_manager.doctype.site.site.verify_password',
+							args: {
+								site_name: frm.doc.name,
+								mysql_password: dialog.fields_dict.mysql_password.value
+							},
+							callback: function(r){
+								if (r.message == "console"){
+									$('a.grey-link:contains("Delete")').click();
+									$('button.btn.btn-primary.btn-sm:contains("Yes")').click();
+									setTimeout( () => {
+										console_dialog(key);
+										frappe.call({
+											method: 'bench_manager.bench_manager.utils.console_command',
+											args: {
+												doctype: frm.doctype,
+												docname: frm.doc.name,
+												commands: `bench drop-site ${frm.doc.name} --root-password ${dialog.fields_dict.mysql_password.value}`,
+												key: key
+											}
+										});
+									}, 1000);
+									dialog.hide();
+								} 
 							}
 						});
 					});

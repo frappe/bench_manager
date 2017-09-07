@@ -47,13 +47,10 @@ frappe.ui.form.on('Bench Settings', {
 							install_erpnext = "true";
 						}
 						frappe.call({
-							method: 'bench_manager.bench_manager.doctype.site.site.verify_new_site',
+							method: 'bench_manager.bench_manager.doctype.site.site.verify_password',
 							args: {
 								site_name: dialog.fields_dict.site_name.value,
-								admin_password: dialog.fields_dict.admin_password.value,
-								mysql_password: dialog.fields_dict.mysql_password.value,
-								install_erpnext: install_erpnext,
-								key: key
+								mysql_password: dialog.fields_dict.mysql_password.value
 							},
 							callback: function(r){
 								if (r.message == "console"){

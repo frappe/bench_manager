@@ -44,8 +44,8 @@ class Site(Document):
 
 	def on_trash(self):
 		if self.developer_flag == 0:
-			# frappe.throw("Please go inside the site and try deleting again")
-			frappe.publish_realtime("Bench-Manager:drop-site", {"site_name": self.site_name}, user=frappe.session.user)
+			pass
+			# frappe.throw("Please reload the page and try again!")
 		else:
 			pass
 
@@ -149,20 +149,17 @@ def pass_exists(doctype, docname=''):
 	with open(site_config_path, 'r') as f:
 		site_config_data = json.load(f)
 	#FF FT TF
-	ret['condition'][1] = 'T' if site_config_data.get('admin_password') else 'F'
-	ret['admin_password'] = site_config_data.get('admin_password')
+	if ret['condition'][1] == 'F':
+		ret['condition'] = ret['condition'][0] + 'T' if site_config_data.get('admin_password') else 'F'
+		ret['admin_password'] = site_config_data.get('admin_password') 
+	else:
+		if site_config_data.get('admin_password'):
+			ret['condition'] = ret['condition'][0] + 'T'
+			ret['admin_password'] = site_config_data.get('admin_password')
 	return ret
 
-
 @frappe.whitelist()
-def verify_new_site(site_name, mysql_password, admin_password, install_erpnext, key):
-	all_sites = frappe.get_all('Site')
-	all_sites = [site["name"] for site in all_sites]
-	process = check_output("ls".split())
-	process = process.strip('\n').split('\n')
-	all_sites = list(set(all_sites) | set(process))
-	if site_name in all_sites:
-		frappe.throw("Site already exists!")
+def verify_password(site_name, mysql_password):
 	try:
 		db = _mysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=mysql_password)
 		db.close()
