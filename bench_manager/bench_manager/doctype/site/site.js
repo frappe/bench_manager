@@ -3,9 +3,9 @@
 
 frappe.ui.form.on('Site', {
 	onload: function(frm) {
-		// if (frm.doc.__islocal != 1){
-		// 	frm.save();
-		// }
+		if (frm.doc.__islocal != 1){
+			frm.save();
+		}
 		frappe.realtime.on("Bench-Manager:reload-page", () => {
 			frm.reload_doc();
 		});
@@ -142,7 +142,7 @@ frappe.ui.form.on('Site', {
 								doctype: frm.doctype,
 								docname: frm.doc.name,
 								key: key,
-								comamnds: "bench --site "+ frm.doc.name + " uninstall-app " + cur_dialog.fields_dict.removable_apps.value + " --yes"
+								commands: `bench --site ${frm.doc.name} uninstall-app ${cur_dialog.fields_dict.removable_apps.value} --yes`
 							},
 							callback: function(){
 								dialog.hide();

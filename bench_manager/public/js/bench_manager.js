@@ -3,7 +3,7 @@
 
 var console_dialog = (key) => {
 	var dialog = new frappe.ui.Dialog({
-		title: "Console",
+		title: 'Console',
 		fields: [
 			{fieldname: 'console', fieldtype: 'HTML'},
 		]
@@ -16,7 +16,7 @@ var console_dialog = (key) => {
 	frappe._in_progress = false;
 	frappe._output_target.innerHTML = '';
 	dialog.show();
-	dialog.$wrapper.find('.modal-dialog').css("width", "800px");
+	dialog.$wrapper.find('.modal-dialog').css('width', '800px');
 
 	frappe.realtime.on(key, function(output) {
 		if (output==='\r') {
