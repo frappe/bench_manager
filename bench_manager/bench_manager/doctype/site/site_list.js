@@ -19,5 +19,13 @@ frappe.listview_settings['Site'] = {
 				btn: this
 			});
 		});
+	},
+	refresh: () => {
+		setTimeout( () => {
+			$("input.list-select-all.hidden-xs").hide()
+		}, 500);
+		setTimeout( () => {
+			$("input.list-row-checkbox.hidden-xs").hide()
+		}, 500);
 	}
 };

@@ -102,11 +102,10 @@ def update_site_list():
 def sync_backups():
 	backup_dirs_data = update_backup_list()
 	backup_entries = [x['name'] for x in frappe.get_all('Site Backup')]
-	bakcup_dirs = [x['site_name']+' '+x['date']+' '+x['time']  for x in backup_dirs_data]
-	create_backups = list(set(bakcup_dirs) - set(backup_entries))
-	delete_backups = list(set(backup_entries) - set(bakcup_dirs))
+	backup_dirs = [x['site_name']+' '+x['date']+' '+x['time']  for x in backup_dirs_data]
+	create_backups = list(set(backup_dirs) - set(backup_entries))
+	delete_backups = list(set(backup_entries) - set(backup_dirs))
 	# frappe.msgprint('Please be patitent while enries for these backups are created')
-	# frappe.msgprint(create_backups)
 	for sitename_date_time in create_backups:
 		sitename_date_time = sitename_date_time.split(' ')
 		backup = {}
@@ -132,7 +131,9 @@ def sync_backups():
 		doc = frappe.get_doc('Site Backup', backup)
 		doc.developer_flag = 1
 		doc.save()
+		frappe.db.commit()
 		doc.delete()
+		frappe.db.commit()
 	# frappe.msgprint('Done')
 
 def update_backup_list():

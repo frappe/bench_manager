@@ -23,7 +23,7 @@ def run_command(commands, cwd, doctype, key, docname=' ', shell=False, after_com
 		 'command': ' && '.join(commands), 'console': console_dump, 'status': 'Ongoing'})
 	doc.insert()
 	frappe.db.commit()
-	frappe.publish_realtime(key, "Ececuting Command:\n"+' && '.join(commands)+"\n\n", user=frappe.session.user)
+	frappe.publish_realtime(key, "Executing Command:\n"+' && '.join(commands)+"\n\n", user=frappe.session.user)
 	try:
 		print commands
 		for command in commands:
