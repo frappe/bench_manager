@@ -26,29 +26,26 @@ frappe.ui.form.on('Bench Settings', {
 				callback: function(r){
 					var dialog = new frappe.ui.Dialog({
 						fields: [
-							{fieldname: 'site_name', fieldtype: 'Data', label: "Site Name"},
+							{fieldname: 'site_name', fieldtype: 'Data', label: "Site Name", reqd: true},
 							{fieldname: 'install_erpnext', fieldtype: 'Check', label: "Install ERPNext"},
-							{'fieldname': 'admin_password', 'fieldtype': 'Password',
-								'label': 'Administrator Password', 'reqd': true,
-								'default': (r['message']['admin_password'] ? r['message']['admin_password'] :'admin')},
-							{'fieldname': 'mysql_password', 'fieldtype': 'Password',
-								'label': 'MySQL Password', 'reqd': true,
-								'default': r['message']['root_password']}
+							{fieldname: 'admin_password', fieldtype: 'Password',
+								label: 'Administrator Password', reqd: r['message']['condition'][0] != 'T',
+								default: (r['message']['admin_password'] ? r['message']['admin_password'] :'admin'),
+								depends_on: `eval:${String(r['message']['condition'][0] != 'T')}`},
+							{fieldname: 'mysql_password', fieldtype: 'Password',
+								label: 'MySQL Password', reqd: r['message']['condition'][1] != 'T',
+								default: r['message']['root_password'], depends_on: `eval:${String(r['message']['condition'][1] != 'T')}`}
 						],
 					});
 					dialog.set_primary_action(__("Create"), () => {
 						let key = frappe.datetime.get_datetime_as_string();
+						console.log(key)
 						let install_erpnext;
 						if (dialog.fields_dict.install_erpnext.last_value != 1){
-							install_erpnext = "true";
-						} else {
 							install_erpnext = "false";
+						} else {
+							install_erpnext = "true";
 						}
-						// frappe.msgprint(dialog.fields_dict.site_name.value);
-						// frappe.msgprint(dialog.fields_dict.admin_password.value);
-						// frappe.msgprint(dialog.fields_dict.mysql_password.value);
-						// frappe.msgprint(install_erpnext);
-						// frappe.msgprint(key);
 						frappe.call({
 							method: 'bench_manager.bench_manager.doctype.site.site.verify_new_site',
 							args: {
@@ -59,9 +56,19 @@ frappe.ui.form.on('Bench Settings', {
 								key: key
 							},
 							callback: function(r){
-								frappe.msgprint("cb");
 								if (r.message == "console"){
 									console_dialog(key);
+									frappe.call({
+										method: 'bench_manager.bench_manager.doctype.site.site.create_site',
+										args: {
+											site_name: dialog.fields_dict.site_name.value,
+											admin_password: dialog.fields_dict.admin_password.value,
+											mysql_password: dialog.fields_dict.mysql_password.value,
+											install_erpnext: install_erpnext,
+											key: key
+										}
+									});
+									dialog.hide()
 								} 
 							}
 						});
