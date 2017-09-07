@@ -11,6 +11,7 @@ import shlex
 
 @frappe.whitelist()
 def console_command(doctype='', docname='', key='', commands='', cwd='..'):
+	print commands
 	commands = commands.split('\r')
 	frappe.enqueue('bench_manager.bench_manager.utils.run_command',
 		commands=commands, cwd=cwd, doctype=doctype, key=key, docname=docname)

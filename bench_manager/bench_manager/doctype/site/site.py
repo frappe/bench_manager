@@ -53,9 +53,11 @@ class Site(Document):
 		self.app_list = '\n'.join(self.get_installed_apps())
 
 	def get_installed_apps(self):
-		terminal = check_output("bench --site "+self.site_name+" list-apps",
+		list_apps = check_output("bench --site "+self.site_name+" list-apps",
 			shell=True, cwd='..')
-		return terminal.strip('\n').split('\n')
+		if 'frappe' not in list_apps:
+			list_apps = 'frappe\n' + list_apps
+		return list_apps.strip('\n').split('\n')
 
 	def update_site_config(self):
 		site_config_path = self.site_name+'/site_config.json'
@@ -172,7 +174,6 @@ def verify_password(site_name, mysql_password):
 def create_site(site_name, install_erpnext, mysql_password, admin_password, key):
 	commands = "bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name, 
 		admin_password=admin_password, mysql_password=mysql_password)
-	print commands
 	if install_erpnext == "true":
 		with open('apps.txt', 'r') as f:
 		    app_list = f.read()
