@@ -7,7 +7,6 @@ import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE, STDOUT
 import os, re, time
-from  bench_manager.bench_manager.utils import console_command
 
 class App(Document):
 	app_info_fields = ["app_title", "app_description", "app_publisher", "app_email",
@@ -28,7 +27,7 @@ class App(Document):
 
 	def onload(self):
 		self.update_app_details()
-		
+
 	def get_attr(self, varname):
 		return getattr(self, varname)
 
@@ -71,7 +70,7 @@ class App(Document):
 			# todo: check if the app is linked to any site
 			apps_file = 'apps.txt'
 			with open(apps_file, 'r') as f:
-				apps = frappe.as_unicode(f.readlines())
+				apps = f.readlines()
 			try:
 				apps.remove(self.app_name)
 			except:
@@ -88,7 +87,11 @@ class App(Document):
 		if os.path.isfile('../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'):
 			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
 			with open(app_data_path, 'r') as f:
-				app_data = frappe.as_unicode(f.readlines())
+				app_data = f.readlines()
+			app_data = frappe.as_unicode(''.join(app_data)).split('\n')
+			if '' in app_data:
+				app_data.remove('')
+			app_data = [x+'\n' for x in app_data]
 			for data in app_data:
 				if 'Version:' in data:
 					self.version = ''.join(re.findall('Version: (.*?)\\n', data))

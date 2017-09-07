@@ -16,6 +16,67 @@ frappe.ui.form.on('Bench Settings', {
 		});
 	},
 	refresh: function(frm) {
+		frm.add_custom_button(__('New Site'), function(){
+			frappe.call({
+				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
+				args: {
+					doctype: frm.doctype
+				},
+				btn: this,
+				callback: function(r){
+					var dialog = new frappe.ui.Dialog({
+						fields: [
+							{fieldname: 'site_name', fieldtype: 'Data', label: "Site Name", reqd: true},
+							{fieldname: 'install_erpnext', fieldtype: 'Check', label: "Install ERPNext"},
+							{fieldname: 'admin_password', fieldtype: 'Password',
+								label: 'Administrator Password', reqd: r['message']['condition'][0] != 'T',
+								default: (r['message']['admin_password'] ? r['message']['admin_password'] :'admin'),
+								depends_on: `eval:${String(r['message']['condition'][0] != 'T')}`},
+							{fieldname: 'mysql_password', fieldtype: 'Password',
+								label: 'MySQL Password', reqd: r['message']['condition'][1] != 'T',
+								default: r['message']['root_password'], depends_on: `eval:${String(r['message']['condition'][1] != 'T')}`}
+						],
+					});
+					dialog.set_primary_action(__("Create"), () => {
+						let key = frappe.datetime.get_datetime_as_string();
+						console.log(key)
+						let install_erpnext;
+						if (dialog.fields_dict.install_erpnext.last_value != 1){
+							install_erpnext = "false";
+						} else {
+							install_erpnext = "true";
+						}
+						frappe.call({
+							method: 'bench_manager.bench_manager.doctype.site.site.verify_new_site',
+							args: {
+								site_name: dialog.fields_dict.site_name.value,
+								admin_password: dialog.fields_dict.admin_password.value,
+								mysql_password: dialog.fields_dict.mysql_password.value,
+								install_erpnext: install_erpnext,
+								key: key
+							},
+							callback: function(r){
+								if (r.message == "console"){
+									console_dialog(key);
+									frappe.call({
+										method: 'bench_manager.bench_manager.doctype.site.site.create_site',
+										args: {
+											site_name: dialog.fields_dict.site_name.value,
+											admin_password: dialog.fields_dict.admin_password.value,
+											mysql_password: dialog.fields_dict.mysql_password.value,
+											install_erpnext: install_erpnext,
+											key: key
+										}
+									});
+									dialog.hide()
+								} 
+							}
+						});
+					});
+					dialog.show();
+				}
+			});
+		});
 		frm.add_custom_button(__("Update"), function(){
 			let key = frappe.datetime.get_datetime_as_string();
 			console_dialog(key);
@@ -24,27 +85,12 @@ frappe.ui.form.on('Bench Settings', {
 				args: {
 					doctype: frm.doctype,
 					docname: frm.doc.name,
-					bench_command: 'update',
+					commands: "bench update",
 					key: key
 				},
 				btn: this
 			});
 		});
-		// frm.add_custom_button(__('Sync Backups'), () => {
-		// 	frappe.call({
-		// 		method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_backups'
-		// 	});
-		// });
-		// frm.add_custom_button(__('Sync Sites'), () => {
-		// 	frappe.call({
-		// 		method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_sites'
-		// 	});
-		// });
-		// frm.add_custom_button(__('Sync Apps'), () => {
-		// 	frappe.call({
-		// 		method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_apps'
-		// 	});
-		// });
 		frm.add_custom_button(__('Sync'), () => {
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_all'
