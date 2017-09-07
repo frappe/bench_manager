@@ -14,7 +14,7 @@ frappe.listview_settings['Site'] = {
 					doctype: list.doctype,
 					docname: data.site_name,
 					key: key,
-					bench_command: 'drop-site'
+					commands: "bench drop-site " + data.site_name
 				},
 				btn: this
 			});
