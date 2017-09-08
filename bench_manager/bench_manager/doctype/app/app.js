@@ -6,6 +6,9 @@ frappe.ui.form.on('App', {
 		if (frm.doc.__islocal != 1){
 			frm.save();
 		}
+		frappe.realtime.on("Bench-Manager:reload-page", () => {
+			frm.reload_doc();
+		});
 	},
 	refresh: function(frm) {
 		if (frm.doc.version == undefined) {
@@ -69,6 +72,7 @@ frappe.ui.form.on('App', {
 									cwd: '../apps/'+frm.doc.name
 								},
 								callback: function(){
+									frappe.publish_realtime("Bench-Manager:reload-page");
 									dialog.hide();
 								}
 							});

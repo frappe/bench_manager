@@ -44,8 +44,8 @@ class Site(Document):
 
 	def on_trash(self):
 		if self.developer_flag == 0:
-			# frappe.throw("Please go inside the site and try deleting again")
-			frappe.publish_realtime("Bench-Manager:drop-site", {"site_name": self.site_name}, user=frappe.session.user)
+			pass
+			# frappe.throw("Please reload the page and try again!")
 		else:
 			pass
 
@@ -53,9 +53,11 @@ class Site(Document):
 		self.app_list = '\n'.join(self.get_installed_apps())
 
 	def get_installed_apps(self):
-		terminal = check_output("bench --site "+self.site_name+" list-apps",
+		list_apps = check_output("bench --site "+self.site_name+" list-apps",
 			shell=True, cwd='..')
-		return terminal.strip('\n').split('\n')
+		if 'frappe' not in list_apps:
+			list_apps = 'frappe\n' + list_apps
+		return list_apps.strip('\n').split('\n')
 
 	def update_site_config(self):
 		site_config_path = self.site_name+'/site_config.json'
@@ -149,20 +151,17 @@ def pass_exists(doctype, docname=''):
 	with open(site_config_path, 'r') as f:
 		site_config_data = json.load(f)
 	#FF FT TF
-	ret['condition'][1] = 'T' if site_config_data.get('admin_password') else 'F'
-	ret['admin_password'] = site_config_data.get('admin_password')
+	if ret['condition'][1] == 'F':
+		ret['condition'] = ret['condition'][0] + 'T' if site_config_data.get('admin_password') else 'F'
+		ret['admin_password'] = site_config_data.get('admin_password') 
+	else:
+		if site_config_data.get('admin_password'):
+			ret['condition'] = ret['condition'][0] + 'T'
+			ret['admin_password'] = site_config_data.get('admin_password')
 	return ret
 
-
 @frappe.whitelist()
-def verify_new_site(site_name, mysql_password, admin_password, install_erpnext, key):
-	all_sites = frappe.get_all('Site')
-	all_sites = [site["name"] for site in all_sites]
-	process = check_output("ls".split())
-	process = process.strip('\n').split('\n')
-	all_sites = list(set(all_sites) | set(process))
-	if site_name in all_sites:
-		frappe.throw("Site already exists!")
+def verify_password(site_name, mysql_password):
 	try:
 		db = _mysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=mysql_password)
 		db.close()
@@ -175,7 +174,6 @@ def verify_new_site(site_name, mysql_password, admin_password, install_erpnext, 
 def create_site(site_name, install_erpnext, mysql_password, admin_password, key):
 	commands = "bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name, 
 		admin_password=admin_password, mysql_password=mysql_password)
-	print commands
 	if install_erpnext == "true":
 		with open('apps.txt', 'r') as f:
 		    app_list = f.read()
