@@ -36,14 +36,14 @@ frappe.ui.form.on('App', {
 						cwd: '../apps/'+frm.doc.name
 					},
 					btn: this,
-					callback: function(r) {
+					callback: function() {
 						setTimeout(function() { frm.save(); }, 5000);
 					}
 				});
 			});
 		} else {
 
-		    frm.add_custom_button(__('Switch Branch'), function(){
+			frm.add_custom_button(__('Switch Branch'), function(){
 				frappe.call({
 					method: 'bench_manager.bench_manager.doctype.app.app.get_branches',
 					args: {
