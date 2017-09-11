@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE, STDOUT
 import os, re, time
+from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class App(Document):
 	app_info_fields = ["app_title", "app_description", "app_publisher", "app_email",
@@ -118,6 +119,7 @@ class App(Document):
 
 @frappe.whitelist()
 def get_branches(doctype, docname, current_branch):
+	verify_whitelisted_call()
 	app_path = '../apps/'+docname
 	branches = (check_output("git branch".split(), cwd=app_path)).split()
 	branches.remove('*')
