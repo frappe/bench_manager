@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output
+from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class SiteBackup(Document):
 	def autoname(self):
@@ -35,10 +36,12 @@ class SiteBackup(Document):
 
 @frappe.whitelist()
 def get_restore_options(doctype, docname):
+	verify_whitelisted_call()
 	return [x['name'] for x in frappe.get_all('Site')]
 
 @frappe.whitelist()
 def restore_backup(doctype, docname, on_a_new_site, existing_site, new_site_name, mysql_password, admin_password, key):
+	verify_whitelisted_call()
 	backup = frappe.get_doc('Site Backup', docname)
 	commands = []
 	password_suffix = "--admin-password {admin_password} --mariadb-root-password {mysql_password}".format(mysql_password=mysql_password, admin_password=admin_password)

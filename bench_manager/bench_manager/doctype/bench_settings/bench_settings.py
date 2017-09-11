@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 import json, os
 from subprocess import check_output, Popen, PIPE
+from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class BenchSettings(Document):
 	site_config_fields = ["background_workers", "shallow_clone", "admin_password",
@@ -20,7 +21,7 @@ class BenchSettings(Document):
 	def set_attr(self, varname, varval):
 		return setattr(self, varname, varval)
 
-	def onload(self):
+	def validate(self):
 		self.sync_site_config()
 		self.update_git_details()
 
@@ -41,6 +42,7 @@ class BenchSettings(Document):
 
 @frappe.whitelist()
 def sync_sites():
+	verify_whitelisted_call()
 	site_dirs = update_site_list()
 	site_entries = [x['name'] for x in frappe.get_all('Site')]
 	create_sites = list(set(site_dirs) - set(site_entries))
@@ -61,6 +63,7 @@ def sync_sites():
 
 @frappe.whitelist()
 def sync_apps():
+	verify_whitelisted_call()
 	app_dirs = update_app_list()
 	app_entries = [x['name'] for x in frappe.get_all('App')]
 	create_apps = list(set(app_dirs) - set(app_entries))
@@ -100,6 +103,7 @@ def update_site_list():
 
 @frappe.whitelist()
 def sync_backups():
+	verify_whitelisted_call()
 	backup_dirs_data = update_backup_list()
 	backup_entries = [x['name'] for x in frappe.get_all('Site Backup')]
 	backup_dirs = [x['site_name']+' '+x['date']+' '+x['time']+' '+x['stored_location']  for x in backup_dirs_data]
@@ -199,6 +203,7 @@ def get_hash(date_time_hash):
 
 @frappe.whitelist()
 def sync_all():
+	verify_whitelisted_call()
 	sync_sites()
 	sync_apps()
 	sync_backups()

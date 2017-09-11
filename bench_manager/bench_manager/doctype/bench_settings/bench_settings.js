@@ -3,6 +3,9 @@
 
 frappe.ui.form.on('Bench Settings', {
 	onload: function(frm) {
+		if (frm.doc.__islocal != 1){
+			frm.save();
+		}
 		let site_config_fields = ["background_workers", "shallow_clone", "admin_password",
 			"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
 			"dropbox_access_key", "dropbox_secret_key", "gunicorn_workers", "github_username",
