@@ -30,13 +30,25 @@ There are 4 main doctypes associated with this app.
 
 - This doctype shows a list of all installed apps in the current bench Instance.
 
-App Git Init                                       |  App Git Fetch                             
-:-------------------------------------------------:|:---------------------------------------------------:
-![](bench_manager/public/images/app-init.gif)  |  ![](bench_manager/public/images/app-fetch.gif) 
+| App Git Init                                   |
+| :--------------------------------------------: |
+| ![](bench_manager/public/images/app-init.gif)  |
 
-Create Git Branch                                  |  Switch Git Branch                                  | Delete Git Branch
-:-------------------------------------------------:|:---------------------------------------------------:|:-------------------------------------------------------------:
-![](bench_manager/public/images/app-new_branch.gif)  | ![](bench_manager/public/images/app-switch_branch.gif) |![](bench_manager/public/images/app-delete_branch.webm.gif)
+| App Git Fetch                                        |
+| :--------------------------------------------------: |
+| ![](bench_manager/public/images/app_git_fetch.gif)   |
+
+| Create Git Branch                                   |
+| :-------------------------------------------------: |
+| ![](bench_manager/public/images/app_new_branch.gif) |
+
+| Switch Git Branch                                      |
+| :---------------------------------------------------:  |
+| ![](bench_manager/public/images/app_switch_branch.gif) |
+
+| Delete Git Branch                                             |
+| :-----------------------------------------------------------: |
+| ![](bench_manager/public/images/app_delete_branch.gif)        |
 
 ### 2. Bench Settings
 
@@ -49,13 +61,21 @@ Create Git Branch                                  |  Switch Git Branch         
 - The Bench setting doctype also displays all the config parameters in the common-site-config.json which is applicable to all 
   the sites in your bench instance.
 
-Want to edit common site config? We have it covered!      | Create a new site? With ERPNext on it? No problem!
-:--------------------------------------------------------:|:---------------------------------------------------:
-![](bench_manager/public/images/bench_settings-overview.gif)   |  ![](bench_manager/public/images/bench_settings-new_site.gif) 
+| Want to edit common site config? We have it covered!       |
+| :--------------------------------------------------------: |
+| ![](bench_manager/public/images/common_site_config.gif)    |
 
-Sync all your sites, apps and backups. Simple as that!| Bench Update? Click! Done.                   
-:----------------------------------------------------:|:---------------------------------------------------:
-![](bench_manager/public/images/bench_settings-sync.gif)     |  ![](bench_manager/public/images/bench_settings-update.gif) 
+| Create a new site? With ERPNext on it? No problem!   |
+| :--------------------------------------------------- |
+| ![](bench_manager/public/images/site_creation.gif)   |
+
+| Sync all your sites, apps and backups. Simple as that! | 
+| :----------------------------------------------------: |
+| ![](bench_manager/public/images/sync.gif)              |
+
+| Bench Update? Click! Done.                            |
+| :---------------------------------------------------: |
+| ![](bench_manager/public/images/bench_update.gif)     |
 
 ### 3. Site
 
@@ -73,15 +93,29 @@ Sync all your sites, apps and backups. Simple as that!| Bench Update? Click! Don
   4. Uninstall App
       * Lets you uninstall an app from the site. 
 
+| Want to delete a site? :(                           |
+| :-------------------------------------------------: |
+| ![](bench_manager/public/images/drop_site.gif)      |
 
-Want to delete a site? :(    |  Install app on site             | Uninstall app from site
-:-------------------------------------------------:|:---------------------------------------------------:|:-------------------------------------------------------------:
-![](bench_manager/public/images/site-drop_site.gif)  | ![](bench_manager/public/images/site-install_app.gif) |![](bench_manager/public/images/site-uninstall_app.gif)
+| Install app on site                                      |
+| :---------------------------------------------------:    |
+| ![](bench_manager/public/images/install_app_on_site.gif) | 
 
-Backup a site                              |  Migrate a site                           | Reinstall a site
-:-------------------------------------------------:|:---------------------------------------------------:|:-------------------------------------------------------------:
-![](bench_manager/public/images/site-backup.gif)  | ![](bench_manager/public/images/site-migrate.gif) |![](bench_manager/public/images/site-reinstall.gif)
+| Uninstall app from site                                         |
+| :-------------------------------------------------------------: |
+| ![](bench_manager/public/images/uninstall_app.gif)              |
 
+| Backup a site                                       |
+| :-------------------------------------------------: |
+| ![](bench_manager/public/images/backup_site.gif)    |
+
+| Migrate a site                                        |
+| :---------------------------------------------------: |
+| ![](bench_manager/public/images/migrate_site.gif)     |
+
+| Reinstall a site                                                |
+| :-------------------------------------------------------------: |
+| ![](bench_manager/public/images/reinstall_site.gif)             |
 
 ### 4. Site Backup
 
@@ -90,9 +124,9 @@ Backup a site                              |  Migrate a site                    
 - Clicking the Restore button pops up a ui-dialog.
 - In this ui-dialog once chose whether to restore the backup either on an existing site or on a new site.
 
-Want to restore a backup? on a new site or maybe on an existing one? Both scenarios covered!   
-:-------------------------------------------------------------------------------------------:
-![](bench_manager/public/images/site_backup-restore.gif)   
+| Want to restore a backup? on a new site or maybe on an existing one? Both scenarios covered!  |
+| :-------------------------------------------------------------------------------------------: |
+| ![](bench_manager/public/images/restore_site.gif)                                             |
 
 ### 5. Bench Manager Command
 
@@ -102,9 +136,9 @@ Want to restore a backup? on a new site or maybe on an existing one? Both scenar
 - The status of the command can be one of 3 types (Success, Failed or Ongoing)
 - Finally the console text field displays the log of the command.
 
-Track all your executed commands
-:----------------------------------------------------------:
-![](bench_manager/public/images/bench_manager_command-overview.gif)   
+| Track all your executed commands                             |
+| :----------------------------------------------------------: |
+| ![](bench_manager/public/images/bench_manager_command.gif)   |
 
 
 #### License
