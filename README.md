@@ -28,11 +28,11 @@ There are 4 main doctypes associated with this app.
 
 App Git Init                                       |  App Git Fetch                             
 :-------------------------------------------------:|:---------------------------------------------------:
-![](bench_manager/public/images/app_git_init.gif)  |  ![](bench_manager/public/images/app_git_fetch.gif) 
+![](bench_manager/public/images/app-init.gif)  |  ![](bench_manager/public/images/app-fetch.gif) 
 
 Create Git Branch                                  |  Switch Git Branch                                  | Delete Git Branch
 :-------------------------------------------------:|:---------------------------------------------------:|:-------------------------------------------------------------:
-![](bench_manager/public/images/app_new_branch.gif)  | ![](bench_manager/public/images/app_switch_branch.gif) |![](bench_manager/public/images/app_delete_branch.gif)
+![](bench_manager/public/images/app-new_branch.gif)  | ![](bench_manager/public/images/app-switch_branch.gif) |![](bench_manager/public/images/app-delete_branch.webm.gif)
 
 ### 2. Bench Settings
 
@@ -47,11 +47,11 @@ Create Git Branch                                  |  Switch Git Branch         
 
 Want to edit common site config? We have it covered!      | Create a new site? With ERPNext on it? No problem!
 :--------------------------------------------------------:|:---------------------------------------------------:
-![](bench_manager/public/images/common_site_config.gif)   |  ![](bench_manager/public/images/site_creation.gif) 
+![](bench_manager/public/images/bench_settings-overview.gif)   |  ![](bench_manager/public/images/bench_settings-new_site.gif) 
 
 Sync all your sites, apps and backups. Simple as that!| Bench Update? Click! Done.                   
 :----------------------------------------------------:|:---------------------------------------------------:
-![](bench_manager/public/images/sync.gif)     |  ![](bench_manager/public/images/bench_update.gif) 
+![](bench_manager/public/images/bench_settings-sync.gif)     |  ![](bench_manager/public/images/bench_settings-update.gif) 
 
 ### 3. Site
 
@@ -72,11 +72,11 @@ Sync all your sites, apps and backups. Simple as that!| Bench Update? Click! Don
 
 Want to delete a site? :(    |  Install app on site             | Uninstall app from site
 :-------------------------------------------------:|:---------------------------------------------------:|:-------------------------------------------------------------:
-![](bench_manager/public/images/drop_site.gif)  | ![](bench_manager/public/images/install_app_on_site.gif) |![](bench_manager/public/images/uninstall_app.gif)
+![](bench_manager/public/images/site-drop_site.gif)  | ![](bench_manager/public/images/site-install_app.gif) |![](bench_manager/public/images/site-uninstall_app.gif)
 
 Backup a site                              |  Migrate a site                           | Reinstall a site
 :-------------------------------------------------:|:---------------------------------------------------:|:-------------------------------------------------------------:
-![](bench_manager/public/images/backup_site.gif)  | ![](bench_manager/public/images/migrate_site.gif) |![](bench_manager/public/images/reinstall_site.gif)
+![](bench_manager/public/images/site-backup.gif)  | ![](bench_manager/public/images/site-migrate.gif) |![](bench_manager/public/images/site-reinstall.gif)
 
 
 ### 4. Site Backup
@@ -88,7 +88,7 @@ Backup a site                              |  Migrate a site                    
 
 Want to restore a backup? on a new site or maybe on an existing one? Both scenarios covered!   
 :-------------------------------------------------------------------------------------------:
-![](bench_manager/public/images/restore_site.gif)   
+![](bench_manager/public/images/site_backup-restore.gif)   
 
 ### 5. Bench Manager Command
 
@@ -100,7 +100,7 @@ Want to restore a backup? on a new site or maybe on an existing one? Both scenar
 
 Track all your executed commands
 :----------------------------------------------------------:
-![](bench_manager/public/images/bench_manager_command.gif)   
+![](bench_manager/public/images/bench_manager_command-overview.gif)   
 
 
 #### License
