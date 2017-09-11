@@ -7,7 +7,8 @@ import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
 import os, re, json, time, _mysql
-from  bench_manager.bench_manager.utils import console_command
+from bench_manager.bench_manager.utils import console_command
+from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class Site(Document):
 	site_config_fields = ["maintenance_mode", "pause_scheduler", "db_name", "db_password",
@@ -117,6 +118,7 @@ class Site(Document):
 
 @frappe.whitelist()
 def get_installable_apps(doctype, docname):
+	verify_whitelisted_call()
 	app_list_file = 'apps.txt'
 	with open(app_list_file, "r") as f:
 		apps = f.read().split('\n')
@@ -126,12 +128,14 @@ def get_installable_apps(doctype, docname):
 
 @frappe.whitelist()
 def get_removable_apps(doctype, docname):
+	verify_whitelisted_call()
 	removable_apps = frappe.get_doc(doctype, docname).app_list.split('\n')
 	removable_apps.remove('frappe')
 	return removable_apps
 
 @frappe.whitelist()
 def pass_exists(doctype, docname=''):
+	verify_whitelisted_call()
 	#return string convention 'TT',<root_password>,<admin_password>
 	ret = {'condition':'', 'root_password':'', 'admin_password':''}
 	common_site_config_path = 'common_site_config.json'
@@ -162,6 +166,7 @@ def pass_exists(doctype, docname=''):
 
 @frappe.whitelist()
 def verify_password(site_name, mysql_password):
+	verify_whitelisted_call()
 	try:
 		db = _mysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=mysql_password)
 		db.close()
@@ -172,6 +177,7 @@ def verify_password(site_name, mysql_password):
 
 @frappe.whitelist()
 def create_site(site_name, install_erpnext, mysql_password, admin_password, key):
+	verify_whitelisted_call()
 	commands = "bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name, 
 		admin_password=admin_password, mysql_password=mysql_password)
 	if install_erpnext == "true":

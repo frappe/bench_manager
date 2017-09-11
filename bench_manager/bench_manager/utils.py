@@ -11,6 +11,7 @@ import shlex
 
 @frappe.whitelist()
 def console_command(doctype='', docname='', key='', commands='', cwd='..'):
+	verify_whitelisted_call()
 	print commands
 	commands = commands.split('\r')
 	frappe.enqueue('bench_manager.bench_manager.utils.run_command',
@@ -18,6 +19,7 @@ def console_command(doctype='', docname='', key='', commands='', cwd='..'):
 
 @frappe.whitelist()
 def run_command(commands, cwd, doctype, key, docname=' ', shell=False, after_command=None):
+	verify_whitelisted_call()
 	start_time = frappe.utils.time.time()
 	console_dump = ''
 	doc = frappe.get_doc({'doctype': 'Bench Manager Command', 'key': key, 'source': doctype+': '+docname,
@@ -62,3 +64,8 @@ def _close_the_doc(start_time, key, console_dump, status, user):
 
 def _refresh(doctype, docname, commands):
 	frappe.get_doc(doctype, docname).run_method('after_command', commands=commands)
+
+@frappe.whitelist()
+def verify_whitelisted_call():
+	if 'bench_manager' not in frappe.get_installed_apps():
+		raise ValueError("This site does not have bench manager installed.")
