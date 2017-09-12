@@ -12,7 +12,7 @@ class SiteBackup(Document):
 	def autoname(self):
 		if self.site_name == None:
 			return
-		self.name = self.site_name +' '+ self.date +' '+ self.time +' '+ self.stored_location
+		self.name = self.date +' '+ self.time +' '+ self.site_name +' '+ self.stored_location
 
 	def validate(self):
 		if self.get("__islocal"):
@@ -33,6 +33,15 @@ class SiteBackup(Document):
 		else:
 			pass
 			# frappe.msgprint('Deleting the entry but not the Backup')
+
+	# def convert_date(self):
+	# 	months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+	# 		'August', 'September', 'October', 'November', 'December']
+	# 	date_str = self.date.split(' ')
+	# 	date = date_str[2]
+	# 	date += "-"+str(months.index(date_str[1])).zfill(2)
+	# 	date += "-"+date_str[0]
+	# 	return date
 
 @frappe.whitelist()
 def get_restore_options(doctype, docname):
