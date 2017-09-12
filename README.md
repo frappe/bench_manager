@@ -9,7 +9,7 @@ Create a new site called bench-manager.local and install Bench Manager on the si
 
 ```
 $ bench new-site bench-manager.local
-$ bench git-app bench_manager https://github.com/frappe/bench_manager
+$ bench get-app bench_manager https://github.com/frappe/bench_manager
 $ bench --site bench-manager.local install-app bench_manager
 ```
 ## Update Bench Manager
