@@ -103,7 +103,7 @@ There are 5 main doctypes associated with this app.
 
 | Want to restore a backup? on a new site or maybe on an existing one? Both scenarios covered! |
 | :------------------------------------------------------------------------------------------: |
-| [](bench_manager/public/images/site_backup-restore.gif)                                      |
+| ![](bench_manager/public/images/site_backup-restore.gif)                                      |
 
 ### 4. Bench Manager Command
 
