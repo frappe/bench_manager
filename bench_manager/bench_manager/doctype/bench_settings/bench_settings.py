@@ -47,19 +47,19 @@ def sync_sites():
 	site_entries = [x['name'] for x in frappe.get_all('Site')]
 	create_sites = list(set(site_dirs) - set(site_entries))
 	delete_sites = list(set(site_entries) - set(site_dirs))
-	# frappe.msgprint('Please be patitent while enries for these sites are created')
-	# frappe.msgprint(create_sites)
+
 	for site in create_sites:
 		doc = frappe.get_doc({'doctype': 'Site', 'site_name': site, 'developer_flag':1})
 		doc.insert()
-	# frappe.msgprint('Please be patitent while enries for these sites are deleted')
-	# frappe.msgprint(delete_sites)
+		frappe.db.commit()
+
 	for site in delete_sites:
 		doc = frappe.get_doc('Site', site)
 		doc.developer_flag = 1
 		doc.save()
 		doc.delete()
-	# frappe.msgprint('Done')
+		frappe.db.commit()
+	# frappe.msgprint('Sync sites completed')
 
 @frappe.whitelist()
 def sync_apps():
@@ -76,13 +76,15 @@ def sync_apps():
 			'app_description': 'lorem ipsum', 'app_publisher': 'lorem ipsum',
 			'app_email': 'lorem ipsum', 'developer_flag':1})
 		doc.insert()
+		frappe.db.commit()
 		
 	for app in delete_apps:
 		doc = frappe.get_doc('App', app)
 		doc.developer_flag = 1
 		doc.save()
 		doc.delete()
-	# frappe.msgprint('Done')
+		frappe.db.commit()
+	# frappe.msgprint('Sync apps completed')
 
 def update_app_list():
 	app_list_file = 'apps.txt'
@@ -109,7 +111,7 @@ def sync_backups():
 	backup_dirs = [x['date']+' '+x['time']+' '+x['site_name']+' '+x['stored_location']  for x in backup_dirs_data]
 	create_backups = list(set(backup_dirs) - set(backup_entries))
 	delete_backups = list(set(backup_entries) - set(backup_dirs))
-	# frappe.msgprint('Please be patitent while enries for these backups are created')
+
 	for date_time_sitename_loc in create_backups:
 		date_time_sitename_loc = date_time_sitename_loc.split(' ')
 		backup = {}
@@ -132,8 +134,8 @@ def sync_backups():
 			'file_path': backup['file_path'],
 			'developer_flag': 1})
 		doc.insert()
-	# frappe.msgprint('Please be patitent while enries for these sites are deleted')
-	# frappe.msgprint(delete_backups)
+		frappe.db.commit()
+
 	for backup in delete_backups:
 		doc = frappe.get_doc('Site Backup', backup)
 		doc.developer_flag = 1
@@ -141,7 +143,7 @@ def sync_backups():
 		frappe.db.commit()
 		doc.delete()
 		frappe.db.commit()
-	# frappe.msgprint('Done')
+	# frappe.msgprint('Sync backups completed')
 
 def update_backup_list():
 	all_sites = []
@@ -190,11 +192,6 @@ def update_backup_list():
 	return response
 
 def get_date(date_time_hash):
-	# months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-	# 	'August', 'September', 'October', 'November', 'December']
-	# date = int(date_time_hash.split('_')[0])
-	# return str(date % 100) + ' ' +str(months[(date/100)%100 - 1]) + ' ' +\
-	# 	str(date / 10000)
 	return date_time_hash[:4]+"-"+date_time_hash[4:6]+"-"+date_time_hash[6:8]
 
 def get_time(date_time_hash):
@@ -210,4 +207,4 @@ def sync_all():
 	sync_sites()
 	sync_apps()
 	sync_backups()
-	frappe.msgprint('Done')
+	frappe.msgprint('Sync Complete')

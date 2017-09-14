@@ -14,13 +14,9 @@ $ bench --site bench-manager.local install-app bench_manager
 ```
 ## Update Bench Manager
 
-Inside your bench_manager directory execute:
-```
-$ git pull --rebase origin develop
-```
 In frappe-bench directory execute:
 ```
-$ bench --site bench-manager.local migrate
+$ bench update
 ```
 
 ## Features
