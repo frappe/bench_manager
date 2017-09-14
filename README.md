@@ -44,22 +44,6 @@ There are 5 main doctypes associated with this app.
 - The Bench setting doctype also displays all the config parameters in the common-site-config.json which is applicable to all 
   the sites in your bench instance.
 
-| Want to edit common site config? We have it covered!         |
-| :----------------------------------------------------------: |
-| ![](bench_manager/public/images/bench_settings-overview.gif) |
-
-| Create a new site? With ERPNext on it? No problem!           |
-| :----------------------------------------------------------: |
-| ![](bench_manager/public/images/bench_settings-new_site.gif) |
-
-| Sync all your sites, apps and backups. Simple as that!   |
-| :------------------------------------------------------: |
-| ![](bench_manager/public/images/bench_settings-sync.gif) |
-
-| Bench Update? Click! Done.                                 |
-| :--------------------------------------------------------: |
-| ![](bench_manager/public/images/bench_settings-update.gif) |
-
 ### 2. Site
 
 * The Site doctype shows a list of all the sites in the current bench instance.
@@ -76,40 +60,12 @@ There are 5 main doctypes associated with this app.
   4. Uninstall App
       * Lets you uninstall an app from the site. 
 
-| Want to delete a site? :(                           |
-| :-------------------------------------------------: |
-| ![](bench_manager/public/images/site-drop_site.gif) |
-
-| Install app on site                                   |
-| :---------------------------------------------------: |
-| ![](bench_manager/public/images/site-install_app.gif) |
-
-| Uninstall app from site                                 |
-| :-----------------------------------------------------: |
-| ![](bench_manager/public/images/site-uninstall_app.gif) |
-
-| Backup a site                                    |
-| :----------------------------------------------: |
-| ![](bench_manager/public/images/site-backup.gif) |
-
-| Migrate a site                                    |
-| :-----------------------------------------------: |
-| ![](bench_manager/public/images/site-migrate.gif) |
-
-| Reinstall a site                                    |
-| :-------------------------------------------------: |
-| ![](bench_manager/public/images/site-reinstall.gif) |
-
 ### 3. Site Backup
 
 - This doctype contains a list of all the backups present in your bench instance (includes both existent and archived sites).
 - Inside each individual docname one can find a Restore button.
 - Clicking the Restore button pops up a ui-dialog.
 - In this ui-dialog once chose whether to restore the backup either on an existing site or on a new site.
-
-| Want to restore a backup? on a new site or maybe on an existing one? Both scenarios covered! |
-| :------------------------------------------------------------------------------------------: |
-| ![](bench_manager/public/images/site_backup-restore.gif)                                      |
 
 ### 4. Bench Manager Command
 
@@ -119,33 +75,9 @@ There are 5 main doctypes associated with this app.
 - The status of the command can be one of 3 types (Success, Failed or Ongoing)
 - Finally the console text field displays the log of the command.
 
-| Track all your executed commands                                    |
-| :-----------------------------------------------------------------: |
-| ![](bench_manager/public/images/bench_manager_command-overview.gif) |
-
 ### 5. App
 
-- This doctype shows a list of all installed apps in the current bench Instance.
-
-| App Git Init                                  |
-| :-------------------------------------------: |
-| ![](bench_manager/public/images/app-init.gif) |
-
-| App Git Fetch                                  |
-| :--------------------------------------------: |
-| ![](bench_manager/public/images/app-fetch.gif) |
-
-| Create Git Branch                                   |
-| :-------------------------------------------------: |
-| ![](bench_manager/public/images/app-new_branch.gif) |
-
-| Switch Git Branch                                      |
-| :----------------------------------------------------: |
-| ![](bench_manager/public/images/app-switch_branch.gif) |
-
-| Delete Git Branch                                      |
-| :----------------------------------------------------: |
-| ![](bench_manager/public/images/app-delete_branch.gif) |
+- This doctype shows a list of all installed apps in the current bench instance, and their git information!
 
 #### License
 
