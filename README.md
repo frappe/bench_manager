@@ -12,12 +12,14 @@ $ bench new-site bench-manager.local
 $ bench get-app bench_manager https://github.com/frappe/bench_manager
 $ bench --site bench-manager.local install-app bench_manager
 ```
-## Update Bench Manager
+## Update
 
 In frappe-bench directory execute:
 ```
 $ bench update
 ```
+
+## ![Wiki](https://github.com/codingCoffee/bench_manager/wiki)
 
 ## Features
 
