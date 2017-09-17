@@ -3,7 +3,7 @@
 
 frappe.ui.form.on('Site', {
 	onload: function(frm) {
-		if (frm.doc.__islocal != 1){
+		if (frm.doc.__islocal != 1) {
 			frm.save();
 		}
 		frappe.realtime.on("Bench-Manager:reload-page", () => {
@@ -29,7 +29,7 @@ frappe.ui.form.on('Site', {
 			'Backup Site': ' backup --with-files'
 		};
 		for (let bench_command in single_function_buttons){
-			frm.add_custom_button(__(bench_command), function(){
+			frm.add_custom_button(__(bench_command), function() {
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
 				frappe.call({
@@ -199,7 +199,7 @@ frappe.ui.form.on('Site', {
 										});
 									}, 1000);
 									dialog.hide();
-								} 
+								}
 							}
 						});
 					});
@@ -207,5 +207,13 @@ frappe.ui.form.on('Site', {
 				}
 			});
 		});
+
+		frm.add_custom_button(__('View site'), () => {
+			frappe.db.get_value('Bench Settings', 'Bench Settings', 'webserver_port',
+				(r) => {
+					window.open(`http://${frm.doc.name}:${r.webserver_port}`, '_blank')
+				}
+			)
+		})
 	}
 });
