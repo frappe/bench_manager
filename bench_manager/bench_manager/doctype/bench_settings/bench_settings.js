@@ -5,6 +5,8 @@ frappe.ui.form.on('Bench Settings', {
 	onload: function(frm) {
 		if (frm.doc.__islocal != 1){
 			frm.save();
+			// frm.call("sync_site_config");
+			// frm.call("update_git_details");
 		}
 		let site_config_fields = ["background_workers", "shallow_clone", "admin_password",
 			"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
