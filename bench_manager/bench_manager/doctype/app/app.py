@@ -18,7 +18,7 @@ class App(Document):
 			if self.developer_flag == 0:
 				self.create_app(self.key)
 			self.developer_flag = 0
-			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
+			app_data_path = os.path.join('..', 'apps', self.app_name, '{app_name}.egg-info'.format(app_name=self.app_name), 'PKG-INFO')
 			while not os.path.isfile(app_data_path):
 				time.sleep(2)
 			self.update_app_details()
@@ -85,8 +85,9 @@ class App(Document):
 			check_output("rm -rf " + self.app_name, shell=True)
 
 	def update_app_details(self):
-		if os.path.isfile('../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'):
-			app_data_path = '../apps/'+self.app_name+'/'+self.app_name+'.egg-info/PKG-INFO'
+		pkg_info_file = os.path.join('..', 'apps', self.app_name, '{app_name}.egg-info'.format(app_name=self.app_name), 'PKG-INFO')
+		if os.path.isfile(pkg_info_file):
+			app_data_path = pkg_info_file
 			with open(app_data_path, 'r') as f:
 				app_data = f.readlines()
 			app_data = frappe.as_unicode(''.join(app_data)).split('\n')
@@ -105,14 +106,15 @@ class App(Document):
 			self.app_title = self.app_name
 			self.app_title = self.app_title.replace('-', ' ')
 			self.app_title = self.app_title.replace('_', ' ')
-			if os.path.isdir('../apps/'+self.app_name+'/.git'):
+			if os.path.isdir(os.path.join('..', 'apps', self.app_name, '.git')): #'../apps/'+self.app_name+'/.git')
 				self.current_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
-					cwd='../apps/'+self.app_name).strip('\n')
+					cwd=os.path.join('..', 'apps', self.app_name)).strip('\n')#'../apps/'+self.app_name
 				self.is_git_repo = True
 			else:
 				self.current_git_branch = None
 				self.is_git_repo = False
 		else:
+			frappe.msgprint(pkg_info_file)
 			frappe.throw("Hey developer, the app you're trying to create an \
 				instance of doesn't actually exist. You could consider setting \
 				developer flag to 0 to actually create the app")
@@ -120,7 +122,7 @@ class App(Document):
 @frappe.whitelist()
 def get_branches(doctype, docname, current_branch):
 	verify_whitelisted_call()
-	app_path = '../apps/'+docname
+	app_path = os.path.join('..', 'apps', docname)#'../apps/'+docname
 	branches = (check_output("git branch".split(), cwd=app_path)).split()
 	branches.remove('*')
 	branches.remove(current_branch)
