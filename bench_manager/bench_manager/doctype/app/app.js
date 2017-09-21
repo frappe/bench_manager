@@ -3,19 +3,12 @@
 
 frappe.ui.form.on('App', {
 	onload: function(frm) {
-		if (frm.doc.__islocal != 1){
-			frm.save();
-		}
-		frappe.realtime.on("Bench-Manager:reload-page", () => {
-			frm.reload_doc();
-		});
+		if (frm.doc.__islocal != 1) frm.save();
+		frappe.realtime.on("Bench-Manager:reload-page", () => frm.reload_doc());
 	},
 	refresh: function(frm) {
-		if (frm.doc.version == undefined) {
-			$('div.form-inner-toolbar').hide();
-		} else {
-			$('div.form-inner-toolbar').show();
-		}
+		if (frm.doc.version == undefined) $('div.form-inner-toolbar').hide();
+		else $('div.form-inner-toolbar').show();
 		let app_fields = ["app_title", "version", "app_description", "app_publisher", "app_email",
 			"app_icon", "app_color", "app_license"];
 		app_fields.forEach(function(app_field) {
@@ -26,19 +19,8 @@ frappe.ui.form.on('App', {
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
 				frm.doc.is_git_repo = true;
-				frappe.call({
-					method: 'bench_manager.bench_manager.utils.console_command',
-					args: {
-						doctype: frm.doctype,
-						docname: frm.doc.name,
-						key: key,
-						commands: "git init\rgit add .\rgit commit -m 'Initial Commit'",
-						cwd: '../apps/'+frm.doc.name
-					},
-					btn: this,
-					callback: function() {
-						setTimeout(function() { frm.save(); }, 5000);
-					}
+				frm.call("git_init", {key: key}, () => {
+					setTimeout(() => { frm.save(); }, 5000);
 				});
 			});
 		} else {
@@ -64,7 +46,6 @@ frappe.ui.form.on('App', {
 								],
 							});
 							dialog.set_primary_action(__("Switch"), () => {
-								// $('select.input-with-feedback.form-control').prop('required', True)
 								let key = frappe.datetime.get_datetime_as_string();
 								console_dialog(key);
 								frappe.call({

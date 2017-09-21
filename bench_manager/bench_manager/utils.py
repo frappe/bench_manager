@@ -9,16 +9,7 @@ from subprocess import Popen, check_output, PIPE, STDOUT
 import shlex
 
 
-@frappe.whitelist()
-def console_command(doctype='', docname='', key='', commands='', cwd='..'):
-	verify_whitelisted_call()
-	print commands
-	commands = commands.split('\r')
-	frappe.enqueue('bench_manager.bench_manager.utils.run_command',
-		commands=commands, cwd=cwd, doctype=doctype, key=key, docname=docname)
-
-@frappe.whitelist()
-def run_command(commands, cwd, doctype, key, docname=' ', shell=False, after_command=None):
+def run_command(commands, cwd, doctype, key, docname=' ', after_command=None):
 	verify_whitelisted_call()
 	start_time = frappe.utils.time.time()
 	console_dump = ''
@@ -28,12 +19,8 @@ def run_command(commands, cwd, doctype, key, docname=' ', shell=False, after_com
 	frappe.db.commit()
 	frappe.publish_realtime(key, "Executing Command:\n"+' && '.join(commands)+"\n\n", user=frappe.session.user)
 	try:
-		print commands
 		for command in commands:
-			if shell == False:
-				terminal = Popen(shlex.split(command), shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
-			else:
-				terminal = Popen(command, shell=shell, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
+			terminal = Popen(shlex.split(command), shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
 			for c in iter(lambda: terminal.stdout.read(1), ''):
 				frappe.publish_realtime(key, c, user=frappe.session.user)
 				console_dump += c
