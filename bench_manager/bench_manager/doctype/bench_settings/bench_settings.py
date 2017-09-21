@@ -38,7 +38,7 @@ class BenchSettings(Document):
 
 	def update_git_details(self):
 		self.frappe_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
-			cwd='../apps/frappe/').strip('\n')
+			cwd=os.path.join('..', 'apps', 'frappe')).strip('\n')
 
 @frappe.whitelist()
 def sync_sites():
@@ -77,7 +77,7 @@ def sync_apps():
 			'app_email': 'lorem ipsum', 'developer_flag':1})
 		doc.insert()
 		frappe.db.commit()
-		
+
 	for app in delete_apps:
 		doc = frappe.get_doc('App', app)
 		doc.developer_flag = 1

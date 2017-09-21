@@ -53,31 +53,37 @@ frappe.ui.form.on('App', {
 					},
 					btn: this,
 					callback: function(r) {
-						var dialog = new frappe.ui.Dialog({
-							title: 'Select Branch',
-							fields: [
-								{'fieldname': 'switchable_branches', 'fieldtype': 'Select', options: r.message}
-							],
-						});
-						dialog.set_primary_action(__("Switch"), () => {
-							let key = frappe.datetime.get_datetime_as_string();
-							console_dialog(key);
-							frappe.call({
-								method: 'bench_manager.bench_manager.utils.console_command',
-								args: {
-									doctype: frm.doctype,
-									docname: frm.doc.name,
-									key: key,
-									commands: "git checkout " + cur_dialog.fields_dict.switchable_branches.value,
-									cwd: '../apps/'+frm.doc.name
-								},
-								callback: function(){
-									frappe.publish_realtime("Bench-Manager:reload-page");
-									dialog.hide();
-								}
+						if(!r.message){
+							frappe.msgprint('This app has just one branch')
+						}
+						else {
+							var dialog = new frappe.ui.Dialog({
+								title: 'Select Branch',
+								fields: [
+									{'fieldname': 'switchable_branches', 'fieldtype': 'Select', 'options': r.message, 'reqd':1, 'label':'Switchable branches'}
+								],
 							});
-						});
-						dialog.show();
+							dialog.set_primary_action(__("Switch"), () => {
+								// $('select.input-with-feedback.form-control').prop('required', True)
+								let key = frappe.datetime.get_datetime_as_string();
+								console_dialog(key);
+								frappe.call({
+									method: 'bench_manager.bench_manager.utils.console_command',
+									args: {
+										doctype: frm.doctype,
+										docname: frm.doc.name,
+										key: key,
+										commands: "git checkout " + cur_dialog.fields_dict.switchable_branches.value,
+										cwd: '../apps/'+frm.doc.name
+									},
+									callback: function(){
+										dialog.hide();
+										frappe.publish_realtime("Bench-Manager:reload-page");
+									}
+								});
+							});
+							dialog.show();
+						}
 					}
 				});
 			});
