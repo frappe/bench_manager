@@ -114,7 +114,6 @@ class App(Document):
 				self.current_git_branch = None
 				self.is_git_repo = False
 		else:
-			frappe.msgprint(pkg_info_file)
 			frappe.throw("Hey developer, the app you're trying to create an \
 				instance of doesn't actually exist. You could consider setting \
 				developer flag to 0 to actually create the app")
