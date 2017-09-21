@@ -9,7 +9,7 @@ from subprocess import Popen, check_output, PIPE, STDOUT
 import shlex
 
 
-def run_command(commands, cwd, doctype, key, docname=' ', after_command=None):
+def run_command(commands, doctype, key, cwd='..', docname=' ', after_command=None):
 	verify_whitelisted_call()
 	start_time = frappe.utils.time.time()
 	console_dump = ''

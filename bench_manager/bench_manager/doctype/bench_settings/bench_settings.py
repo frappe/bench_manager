@@ -40,6 +40,19 @@ class BenchSettings(Document):
 		self.frappe_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
 			cwd=os.path.join('..', 'apps', 'frappe')).strip('\n')
 
+	def console_command(self, key, caller, branch_name=None):
+		commands = {
+			"bench_update": ["bench update'"],
+			"switch_branch": [""]
+		}
+		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
+			commands=commands[caller],			
+			doctype=self.doctype,
+			key=key,
+			docname=self.name
+		)
+
+
 @frappe.whitelist()
 def sync_sites():
 	verify_whitelisted_call()

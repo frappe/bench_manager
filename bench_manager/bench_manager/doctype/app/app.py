@@ -118,15 +118,22 @@ class App(Document):
 				instance of doesn't actually exist. You could consider setting \
 				developer flag to 0 to actually create the app")
 
-	def git_init(self, key):
-		commands = ["git init", "git add .", "git commit -m 'Initial Commit'"]
+	def console_command(self, key, caller, branch_name=None):
+		commands = {
+			"git_init": ["git init", "git add .", "git commit -m 'Initial Commit'"],
+			"switch_branch": ["git checkout {branch_name}".format(branch_name=branch_name)],
+			"new_branch": ["git branch {branch_name}".format(branch_name=branch_name)],
+			"delete_branch": ["git branch -D {branch_name}".format(branch_name=branch_name)],
+			"git_fetch": ["git fetch --all"]
+		}
 		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
-			commands=commands,
-			cwd='../apps/{app_name}'.format(app_name=self.name),
+			commands=commands[caller],
+			cwd=os.path.join('..', 'apps', '{app_name}'.format(app_name=self.name)),
 			doctype=self.doctype,
 			key=key,
 			docname=self.name
 		)
+
 
 @frappe.whitelist()
 def get_branches(doctype, docname, current_branch):

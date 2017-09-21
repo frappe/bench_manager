@@ -19,12 +19,14 @@ frappe.ui.form.on('App', {
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
 				frm.doc.is_git_repo = true;
-				frm.call("git_init", {key: key}, () => {
+				frm.call("console_command", {
+					key: key,
+					caller: "git_init"
+				}, () => {
 					setTimeout(() => { frm.save(); }, 5000);
 				});
 			});
 		} else {
-
 			frm.add_custom_button(__('Switch Branch'), function(){
 				frappe.call({
 					method: 'bench_manager.bench_manager.doctype.app.app.get_branches',
@@ -35,9 +37,7 @@ frappe.ui.form.on('App', {
 					},
 					btn: this,
 					callback: function(r) {
-						if(!r.message){
-							frappe.msgprint('This app has just one branch')
-						}
+						if(!r.message) frappe.msgprint('This app has just one branch');
 						else {
 							var dialog = new frappe.ui.Dialog({
 								title: 'Select Branch',
@@ -48,19 +48,12 @@ frappe.ui.form.on('App', {
 							dialog.set_primary_action(__("Switch"), () => {
 								let key = frappe.datetime.get_datetime_as_string();
 								console_dialog(key);
-								frappe.call({
-									method: 'bench_manager.bench_manager.utils.console_command',
-									args: {
-										doctype: frm.doctype,
-										docname: frm.doc.name,
-										key: key,
-										commands: "git checkout " + cur_dialog.fields_dict.switchable_branches.value,
-										cwd: '../apps/'+frm.doc.name
-									},
-									callback: function(){
-										dialog.hide();
-										frappe.publish_realtime("Bench-Manager:reload-page");
-									}
+								frm.call("console_command", {
+									key: key,
+									branch_name: dialog.fields_dict.switchable_branches.value,
+									caller: "switch_branch"
+								}, () => {
+									dialog.hide();
 								});
 							});
 							dialog.show();
@@ -78,18 +71,12 @@ frappe.ui.form.on('App', {
 				dialog.set_primary_action(__("Create"), () => {
 					let key = frappe.datetime.get_datetime_as_string();
 					console_dialog(key);
-					frappe.call({
-						method: 'bench_manager.bench_manager.utils.console_command',
-						args: {
-							doctype: frm.doctype,
-							docname: frm.doc.name,
-							key: key,
-							commands: "git branch "+cur_dialog.fields_dict.new_branch_name.value,
-							cwd: '../apps/'+frm.doc.name
-						},
-						callback: function(){
-							dialog.hide();
-						}
+					frm.call("console_command", {
+						key: key,
+						branch_name: dialog.fields_dict.new_branch_name.value,
+						caller: "new_branch"
+					}, () => {
+						dialog.hide();
 					});
 				});
 				dialog.show();
@@ -104,45 +91,36 @@ frappe.ui.form.on('App', {
 					},
 					btn: this,
 					callback: function(r) {
-						var dialog = new frappe.ui.Dialog({
-							title: 'Select Branch',
-							fields: [
-								{'fieldname': 'delete_branch_name', 'fieldtype': 'Select', options: r.message}
-							],
-						});
-						dialog.set_primary_action(__("Delete"), () => {
-							let key = frappe.datetime.get_datetime_as_string();
-							console_dialog(key);
-							frappe.call({
-								method: 'bench_manager.bench_manager.utils.console_command',
-								args: {
-									doctype: frm.doctype,
-									docname: frm.doc.name,
-									key: key,
-									commands: "git branch -D "+cur_dialog.fields_dict.delete_branch_name.value,
-									cwd: '../apps/'+frm.doc.name
-								},
-								callback: function(){
-									dialog.hide();
-								}
+						if(!r.message) frappe.msgprint('This app has just one branch');
+						else {						
+							var dialog = new frappe.ui.Dialog({
+								title: 'Select Branch',
+								fields: [
+									{'fieldname': 'delete_branch_name', 'fieldtype': 'Select', options: r.message}
+								],
 							});
-						});
-						dialog.show();
+							dialog.set_primary_action(__("Delete"), () => {
+								let key = frappe.datetime.get_datetime_as_string();
+								console_dialog(key);
+								frm.call("console_command", {
+									key: key,
+									branch_name: dialog.fields_dict.delete_branch_name.value,
+									caller: "delete_branch"
+								}, () => {
+									dialog.hide();
+								});
+							});
+							dialog.show();
+						}
 					}
 				});
 			});
 			frm.add_custom_button(__('Fetch'), function(){
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
-				frappe.call({
-					method: 'bench_manager.bench_manager.utils.console_command',
-					args: {
-						doctype: frm.doctype,
-						docname: frm.doc.name,
-						key: key,
-						commands: "git fetch --all",
-						cwd: '../apps/'+frm.doc.name
-					}
+				frm.call("console_command", {
+					key: key,
+					caller: "git_fetch"
 				});
 			});
 		}

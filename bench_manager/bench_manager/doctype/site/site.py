@@ -7,7 +7,6 @@ import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
 import os, re, json, time, _mysql
-from bench_manager.bench_manager.utils import console_command
 from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class Site(Document):
@@ -116,6 +115,23 @@ class Site(Document):
 				instance of doesn't actually exist. You could consider setting \
 				bypass flag to 0 to actually create the site")
 
+	def console_command(self, key, caller, app_name=None, admin_password=None, mysql_password=None):
+		commands = {
+			"migrate": ["bench --site {site_name} migrate".format(site_name=self.name)],
+			"backup": ["bench --site {site_name} backup --with-files".format(site_name=self.name)],
+			"reinstall": ["bench --site {site_name} reinstall --yes --admin-password {admin_password}".format(site_name=self.name, admin_password=admin_password)],
+			"install_app": ["bench --site {site_name} install-app {app_name}".format(site_name=self.name, app_name=app_name)],
+			"uninstall_app": ["bench --site {site_name} uninstall-app {app_name} --yes".format(site_name=self.name, app_name=app_name)],
+			"drop_site": ["bench drop-site {site_name} --root-password {mysql_password}".format(site_name=self.name, mysql_password=mysql_password)]
+		}
+		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
+			commands=commands[caller],
+			doctype=self.doctype,
+			key=key,
+			docname=self.name
+		)
+
+
 @frappe.whitelist()
 def get_installable_apps(doctype, docname):
 	verify_whitelisted_call()
@@ -178,15 +194,19 @@ def verify_password(site_name, mysql_password):
 @frappe.whitelist()
 def create_site(site_name, install_erpnext, mysql_password, admin_password, key):
 	verify_whitelisted_call()
-	commands = "bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name, 
-		admin_password=admin_password, mysql_password=mysql_password)
+	commands = ["bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name, 
+		admin_password=admin_password, mysql_password=mysql_password)]
 	if install_erpnext == "true":
 		with open('apps.txt', 'r') as f:
 		    app_list = f.read()
 		if 'erpnext' not in app_list:
-			commands += "\rbench get-app erpnext https://github.com/frappe/erpnext.git"
-		commands += "\rbench --site {site_name} install-app erpnext".format(site_name=site_name)
-	console_command(doctype="Bench Settings", key=key, commands = commands)
+			commands.append("bench get-app erpnext")
+		commands.append("bench --site {site_name} install-app erpnext".format(site_name=site_name))
+	frappe.enqueue('bench_manager.bench_manager.utils.run_command',
+		commands=commands,
+		doctype="Bench Settings",
+		key=key
+	)
 	all_sites = check_output("ls").strip('\n').split('\n')
 	while site_name not in all_sites:
 		time.sleep(2)
