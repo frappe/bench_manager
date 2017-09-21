@@ -56,8 +56,7 @@ frappe.ui.form.on('App', {
 						if(!r.message){
 							frappe.msgprint('This app has just one branch')
 						}
-						else
-						{
+						else {
 							var dialog = new frappe.ui.Dialog({
 								title: 'Select Branch',
 								fields: [
