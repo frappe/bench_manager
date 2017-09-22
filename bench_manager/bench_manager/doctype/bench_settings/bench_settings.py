@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-import json, os
+import json, os, shlex
 from subprocess import check_output, Popen, PIPE
 from bench_manager.bench_manager.utils import verify_whitelisted_call
 
@@ -42,7 +42,7 @@ class BenchSettings(Document):
 
 	def console_command(self, key, caller, branch_name=None):
 		commands = {
-			"bench_update": ["bench update'"],
+			"bench_update": ["bench update"],
 			"switch_branch": [""]
 		}
 		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
@@ -129,7 +129,6 @@ def sync_backups():
 		date_time_sitename_loc = date_time_sitename_loc.split(' ')
 		backup = {}
 		for x in backup_dirs_data:
-			print date_time_sitename_loc
 			if (x['date'] == date_time_sitename_loc[0] and
 				x['time'] == date_time_sitename_loc[1]  and
 				x['site_name'] == date_time_sitename_loc[2] and
@@ -169,7 +168,7 @@ def update_backup_list():
 	all_sites.extend(archived_sites)
 	for root, dirs, files in os.walk("../sites/", topdown=True):
 		for site in dirs:
-			files_list = check_output("cd ../sites/"+site+" && ls", shell=True).split("\n")
+			files_list = check_output(shlex.split("ls ../sites/{site}".format(site=site))).split('\n')
 			if 'site_config.json' in files_list:
 				sites.append(site)
 		break
@@ -182,8 +181,8 @@ def update_backup_list():
 	for site in all_sites:
 		backup_path = os.path.join(site, "private", "backups")
 		try:
-			backup_files = check_output("cd "+backup_path+" && ls *database.sql*",
-				shell=True).strip('\n').split('\n')
+			backup_files = check_output(shlex.split("ls ./{backup_path}".format(backup_path=backup_path))).strip('\n').split('\n')
+			backup_files = [file for file in backup_files if "database.sql" in file]
 			for backup_file in backup_files:
 				inner_response = {}
 				date_time_hash = backup_file.rsplit('_', 1)[0]

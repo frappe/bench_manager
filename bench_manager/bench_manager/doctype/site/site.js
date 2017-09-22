@@ -21,22 +21,22 @@ frappe.ui.form.on('Site', {
 		$('a.grey-link:contains("Delete")').hide();
 		if (frm.doc.db_name == undefined) $('div.form-inner-toolbar').hide();
 		else $('div.form-inner-toolbar').show();
-			frm.add_custom_button(__("Migrate"), function() {
-				let key = frappe.datetime.get_datetime_as_string();
-				console_dialog(key);
-				frm.call("console_command", {
-					key: key,
-					caller: "migrate",
-				});
+		frm.add_custom_button(__("Migrate"), function() {
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
+			frm.call("console_command", {
+				key: key,
+				caller: "migrate",
 			});
-			frm.add_custom_button(__("Backup"), function() {
-				let key = frappe.datetime.get_datetime_as_string();
-				console_dialog(key);
-				frm.call("console_command", {
-					key: key,
-					caller: "backup",
-				});
+		});
+		frm.add_custom_button(__("Backup"), function() {
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
+			frm.call("console_command", {
+				key: key,
+				caller: "backup",
 			});
+		});
 		frm.add_custom_button(__("Reinstall"), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
@@ -161,17 +161,19 @@ frappe.ui.form.on('Site', {
 							},
 							callback: function(r){
 								if (r.message == "console"){
-									$('a.grey-link:contains("Delete")').click();
-									$('button.btn.btn-primary.btn-sm:contains("Yes")').click();
-									setTimeout( () => {
-										console_dialog(key);
-										frm.call("console_command", {
+									frappe.run_serially([
+										() => $('a.grey-link:contains("Delete")').click(),
+										() => $('button.btn.btn-primary.btn-sm:contains("Yes")').click(),
+										() => console_dialog(key),
+										() => frm.call("console_command", {
 											key: key,
-											caller: "uninstall_app",
+											caller: "drop_site",
 											mysql_password: dialog.fields_dict.mysql_password.value
-										});
-									}, 1000);
-									dialog.hide();
+										}),
+										() => dialog.hide()
+									]);
+									
+									
 								}
 							}
 						});

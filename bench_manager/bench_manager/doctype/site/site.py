@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
-import os, re, json, time, _mysql
+import os, re, json, time, _mysql, shlex
 from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class Site(Document):
@@ -53,8 +53,7 @@ class Site(Document):
 		self.app_list = '\n'.join(self.get_installed_apps())
 
 	def get_installed_apps(self):
-		list_apps = check_output("bench --site "+self.site_name+" list-apps",
-			shell=True, cwd='..')
+		list_apps = check_output(shlex.split("bench --site {site_name} list-apps".format(site_name=self.site_name)), cwd='..')
 		if 'frappe' not in list_apps:
 			list_apps = 'frappe\n' + list_apps
 		return list_apps.strip('\n').split('\n')
@@ -116,14 +115,20 @@ class Site(Document):
 				bypass flag to 0 to actually create the site")
 
 	def console_command(self, key, caller, app_name=None, admin_password=None, mysql_password=None):
+		print "\n\n\n yoooo"
+		print "howdy"
+		print "yoooo\n\n\n"
 		commands = {
 			"migrate": ["bench --site {site_name} migrate".format(site_name=self.name)],
 			"backup": ["bench --site {site_name} backup --with-files".format(site_name=self.name)],
-			"reinstall": ["bench --site {site_name} reinstall --yes --admin-password {admin_password}".format(site_name=self.name, admin_password=admin_password)],
+			"reinstall": ["bench --site {site_name} reinstall --yes --admin-password {admin_password} ".format(site_name=self.name, admin_password=admin_password)],
 			"install_app": ["bench --site {site_name} install-app {app_name}".format(site_name=self.name, app_name=app_name)],
 			"uninstall_app": ["bench --site {site_name} uninstall-app {app_name} --yes".format(site_name=self.name, app_name=app_name)],
-			"drop_site": ["bench drop-site {site_name} --root-password {mysql_password}".format(site_name=self.name, mysql_password=mysql_password)]
+			"drop_site": ["bench drop-site {site_name} --root-password {mysql_password} ".format(site_name=self.name, mysql_password=mysql_password)]
 		}
+		print "\n\n\n yoooo"
+		print commands[caller]
+		print "yoooo\n\n\n"
 		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
 			commands=commands[caller],
 			doctype=self.doctype,

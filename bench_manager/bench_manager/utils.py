@@ -6,21 +6,25 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import Popen, check_output, PIPE, STDOUT
-import shlex
+import re, shlex
 
 
 def run_command(commands, doctype, key, cwd='..', docname=' ', after_command=None):
 	verify_whitelisted_call()
 	start_time = frappe.utils.time.time()
 	console_dump = ''
+	logged_command = ' && '.join(commands)
+	sensitive_data = ["--mariadb-root-password", "--admin-password", "--root-password"]
+	for password in sensitive_data:
+		logged_command = re.sub("{password} .*? ".format(password=password), '', logged_command, flags=re.DOTALL)
 	doc = frappe.get_doc({'doctype': 'Bench Manager Command', 'key': key, 'source': doctype+': '+docname,
-		 'command': ' && '.join(commands), 'console': console_dump, 'status': 'Ongoing'})
+		 'command': logged_command, 'console': console_dump, 'status': 'Ongoing'})
 	doc.insert()
 	frappe.db.commit()
-	frappe.publish_realtime(key, "Executing Command:\n"+' && '.join(commands)+"\n\n", user=frappe.session.user)
+	frappe.publish_realtime(key, "Executing Command:\n{logged_command}\n\n".format(logged_command=logged_command), user=frappe.session.user)
 	try:
 		for command in commands:
-			terminal = Popen(shlex.split(command), shell=False, stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
+			terminal = Popen(shlex.split(command), stdin=PIPE, stdout=PIPE, stderr=STDOUT, cwd=cwd)
 			for c in iter(lambda: terminal.stdout.read(1), ''):
 				frappe.publish_realtime(key, c, user=frappe.session.user)
 				console_dump += c
