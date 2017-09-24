@@ -27,6 +27,34 @@ frappe.ui.form.on('App', {
 				});
 			});
 		} else {
+			frm.add_custom_button(__('Pull & Rebase'), function(){
+				frappe.call({
+					method: 'bench_manager.bench_manager.doctype.app.app.get_remotes',
+					args: {
+						docname: frm.doc.name,
+					},
+					btn: this,
+					callback: function(r) {
+						var dialog = new frappe.ui.Dialog({
+							title: 'Select Remote',
+							fields: [
+								{fieldname: 'remote_name', fieldtype: 'Select', 'options': r.message, 'reqd':1, 'label':'Select remote to pull and rebase from'}
+							],
+						});
+						dialog.set_primary_action(__("Pull & Rebase"), () => {
+							let key = frappe.datetime.get_datetime_as_string();
+							console_dialog(key);
+							frm.call("pull_rebase", {
+								key: key,
+								remote: dialog.fields_dict.remote_name.value
+							}, () => {
+								dialog.hide();
+							});
+						});
+						dialog.show();
+					}
+				});
+			});
 			frm.add_custom_button(__('Track Remote'), function(){
 				frappe.call({
 					method: 'bench_manager.bench_manager.doctype.app.app.get_remotes',
