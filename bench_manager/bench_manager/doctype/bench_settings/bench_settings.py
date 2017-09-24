@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-import json, os
+import json, os, shlex, time
 from subprocess import check_output, Popen, PIPE
 from bench_manager.bench_manager.utils import verify_whitelisted_call
 
@@ -24,6 +24,9 @@ class BenchSettings(Document):
 	def validate(self):
 		self.sync_site_config()
 		self.update_git_details()
+		current_time = frappe.utils.time.time()
+		if current_time - self.last_sync_timestamp > 10*60:
+			sync_all(in_background=True)
 
 	def sync_site_config(self):
 		common_site_config_path = 'common_site_config.json'
@@ -39,6 +42,20 @@ class BenchSettings(Document):
 	def update_git_details(self):
 		self.frappe_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
 			cwd=os.path.join('..', 'apps', 'frappe')).strip('\n')
+
+	def console_command(self, key, caller, app_name=None, branch_name=None):
+		commands = {
+			"bench_update": ["bench update"],
+			"switch_branch": [""],
+			"get-app": ["bench get-app {app_name}".format(app_name=app_name)]
+		}
+		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
+			commands=commands[caller],
+			doctype=self.doctype,
+			key=key,
+			docname=self.name
+		)
+
 
 @frappe.whitelist()
 def sync_sites():
@@ -116,7 +133,6 @@ def sync_backups():
 		date_time_sitename_loc = date_time_sitename_loc.split(' ')
 		backup = {}
 		for x in backup_dirs_data:
-			print date_time_sitename_loc
 			if (x['date'] == date_time_sitename_loc[0] and
 				x['time'] == date_time_sitename_loc[1]  and
 				x['site_name'] == date_time_sitename_loc[2] and
@@ -156,7 +172,7 @@ def update_backup_list():
 	all_sites.extend(archived_sites)
 	for root, dirs, files in os.walk("../sites/", topdown=True):
 		for site in dirs:
-			files_list = check_output("cd ../sites/"+site+" && ls", shell=True).split("\n")
+			files_list = check_output(shlex.split("ls ../sites/{site}".format(site=site))).split('\n')
 			if 'site_config.json' in files_list:
 				sites.append(site)
 		break
@@ -169,8 +185,8 @@ def update_backup_list():
 	for site in all_sites:
 		backup_path = os.path.join(site, "private", "backups")
 		try:
-			backup_files = check_output("cd "+backup_path+" && ls *database.sql*",
-				shell=True).strip('\n').split('\n')
+			backup_files = check_output(shlex.split("ls ./{backup_path}".format(backup_path=backup_path))).strip('\n').split('\n')
+			backup_files = [file for file in backup_files if "database.sql" in file]
 			for backup_file in backup_files:
 				inner_response = {}
 				date_time_hash = backup_file.rsplit('_', 1)[0]
@@ -202,9 +218,11 @@ def get_hash(date_time_hash):
 	return date_time_hash.split('_')[2]
 
 @frappe.whitelist()
-def sync_all():
+def sync_all(in_background=False):
 	verify_whitelisted_call()
 	sync_sites()
 	sync_apps()
 	sync_backups()
-	frappe.msgprint('Sync Complete')
+	frappe.set_value('Bench Settings', None, 'last_sync_timestamp', frappe.utils.time.time())
+	if not in_background:
+		frappe.msgprint('Sync Complete')

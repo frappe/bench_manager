@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE, STDOUT
-import os, re, time
+import os, re, time, shlex
 from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class App(Document):
@@ -16,7 +16,7 @@ class App(Document):
 	def validate(self):
 		if self.get("__islocal"):
 			if self.developer_flag == 0:
-				self.create_app(self.key)
+				frappe.throw("Creation of new apps is not supported at the moment!")
 			self.developer_flag = 0
 			app_data_path = os.path.join('..', 'apps', self.app_name, '{app_name}.egg-info'.format(app_name=self.app_name), 'PKG-INFO')
 			while not os.path.isfile(app_data_path):
@@ -38,37 +38,10 @@ class App(Document):
 	def after_command(self, commands=None):
 		frappe.publish_realtime("Bench-Manager:reload-page")
 
-	def create_app(self, key):
-		app_list = check_output("cd ../apps && ls",
-			shell=True).split("\n")
-		if self.app_name in app_list:
-			frappe.throw("App: "+ self.app_name + " already exists, but most\
-				likely there isn't a log of this app. Please click sync to\
-				refresh your app list!")
-		else:
-			if ' ' in self.app_name:
-				frappe.throw("The app name should be developer friendly, and \
-					should not contain spaces !")
-			else:
-				terminal = Popen("cd .. && bench new-app " + self.app_name,
-					stdin=PIPE, shell=True)
-				str_to_exec = ''
-				for app_info_field in self.app_info_fields:
-					if self.get_attr(app_info_field) == None:
-						self.set_attr(app_info_field, '\n')
-					else:
-						self.set_attr(app_info_field, self.get_attr(app_info_field)+'\n')
-					str_to_exec += self.get_attr(app_info_field)
-
-				frappe.msgprint('Creating app, please be patient...')
-				terminal.communicate(str_to_exec)
-				frappe.msgprint('Done')
-
 	def on_trash(self):
 		if self.developer_flag == 0:
 			frappe.throw('Not allowed!')
 		else:
-			# todo: check if the app is linked to any site
 			apps_file = 'apps.txt'
 			with open(apps_file, 'r') as f:
 				apps = f.readlines()
@@ -82,7 +55,8 @@ class App(Document):
 			os.remove(apps_file)
 			with open(apps_file, 'w') as f:
 			    f.writelines(apps)
-			check_output("rm -rf " + self.app_name, shell=True)
+			if self.app_name != '':
+				check_output(shlex.split("rm -r ../apps/{app_name}".format(app_name=self.app_name)))
 
 	def update_app_details(self):
 		pkg_info_file = os.path.join('..', 'apps', self.app_name, '{app_name}.egg-info'.format(app_name=self.app_name), 'PKG-INFO')
@@ -118,6 +92,32 @@ class App(Document):
 				instance of doesn't actually exist. You could consider setting \
 				developer flag to 0 to actually create the app")
 
+	def pull_rebase(self, key, remote):
+		remote, branch_name = remote.split('/')
+		self.console_command(key=key, caller='pull-rebase', branch_name=branch_name, remote=remote)
+
+	def console_command(self, key, caller, branch_name=None, remote=None, commit_msg=None):
+		commands = {
+			"git_init": ["git init", "git add .", "git commit -m 'Initial Commit'"],
+			"switch_branch": ["git checkout {branch_name}".format(branch_name=branch_name)],
+			"new_branch": ["git branch {branch_name}".format(branch_name=branch_name)],
+			"delete_branch": ["git branch -D {branch_name}".format(branch_name=branch_name)],
+			"git_fetch": ["git fetch --all"],
+			"track-remote": ["git checkout -b {branch_name} -t {remote}".format(branch_name=branch_name, remote=remote)],
+			"pull-rebase": ["git pull --rebase {remote} {branch_name}".format(branch_name=branch_name, remote=remote)],
+			"commit": ["git add .", 'git commit -m "{commit_msg}"'.format(commit_msg=commit_msg)],
+			"stash": ["git add .", "git stash"],
+			"apply-stash": ["git stash apply"]
+		}
+		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
+			commands=commands[caller],
+			cwd=os.path.join('..', 'apps', self.name),
+			doctype=self.doctype,
+			key=key,
+			docname=self.name
+		)
+
+
 @frappe.whitelist()
 def get_branches(doctype, docname, current_branch):
 	verify_whitelisted_call()
@@ -126,3 +126,10 @@ def get_branches(doctype, docname, current_branch):
 	branches.remove('*')
 	branches.remove(current_branch)
 	return branches
+
+@frappe.whitelist()
+def get_remotes(docname):
+	command = "git branch -r"
+	remotes = check_output(shlex.split(command), cwd=os.path.join('..', 'apps', docname)).strip('\n').split('\n  ')
+	remotes = [remote for remote in remotes if 'HEAD' not in remote]
+	return remotes

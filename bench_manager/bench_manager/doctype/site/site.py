@@ -6,8 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
-import os, re, json, time, _mysql
-from bench_manager.bench_manager.utils import console_command
+import os, re, json, time, _mysql, shlex
 from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class Site(Document):
@@ -36,33 +35,40 @@ class Site(Document):
 			self.developer_flag = 0
 		else:
 			if self.developer_flag == 0:
-				self.update_app_list()
 				self.update_site_config()
 				self.sync_site_config()
 
 	def after_command(self, commands=None):
-		frappe.publish_realtime("Bench-Manager:reload-page")
+		frappe.publish_realtime("Bench-Manager:reload-page")	
 
-	def on_trash(self):
-		if self.developer_flag == 0:
-			pass
-			# frappe.throw("Please reload the page and try again!")
-		else:
-			pass
+	def update_app_alias(self):
+		self.update_app_list()
+		self.update_site_alias()
 
 	def update_app_list(self):
-		self.app_list = '\n'.join(self.get_installed_apps())
+		# self.set_attr("app_list", '\n'.join(self.get_installed_apps()))
+		self.db_set("app_list", '\n'.join(self.get_installed_apps()))
+
+	def update_site_alias(self):
+		command =  "find . -maxdepth 1 -type l -printf '%p %l\n'"
+		symlinks = check_output(shlex.split(command)).split('\n')
+		alias_list = ''
+		for symlink in symlinks:
+			if self.name in symlink:
+				link_path, site_path = symlink.split(' ')
+				site_alias = link_path[link_path.rfind('/')+1:]+'\n'
+				alias_list += site_alias
+		self.db_set("site_alias", alias_list)
 
 	def get_installed_apps(self):
-		list_apps = check_output("bench --site "+self.site_name+" list-apps",
-			shell=True, cwd='..')
+		list_apps = check_output(shlex.split("bench --site {site_name} list-apps".format(site_name=self.site_name)), cwd='..')
 		if 'frappe' not in list_apps:
 			list_apps = 'frappe\n' + list_apps
 		return list_apps.strip('\n').split('\n')
 
 	def update_site_config(self):
-		site_config_path = self.site_name+'/site_config.json'
-		common_site_config_path = 'common_site_config.json'
+		site_config_path = os.path.join(self.site_name, 'site_config.json')
+		common_site_config_path = os.path.join('common_site_config.json')
 
 		with open(site_config_path, 'r') as f:
 			site_config_data = json.load(f)
@@ -97,24 +103,49 @@ class Site(Document):
 				site_config_data = json.load(f)
 				for site_config_field in self.site_config_fields:
 					if site_config_data.get(site_config_field):
-						self.set_attr(site_config_field,
-							site_config_data[site_config_field])
+						self.set_attr(site_config_field, site_config_data[site_config_field])
 
 				if site_config_data.get('limits'):
 					for limits_field in self.limits_fields:
 						if site_config_data.get('limits').get(limits_field):
-							self.set_attr(limits_field,
-								site_config_data['limits'][limits_field])
+							self.set_attr(limits_field, site_config_data['limits'][limits_field])
 
 					if site_config_data.get('limits').get('space_usage'):
 						for space_usage_field in self.space_usage_fields:
 							if site_config_data.get('limits').get('space_usage').get(space_usage_field):
-								self.set_attr(space_usage_field,
-									site_config_data['limits']['space_usage'][space_usage_field])
+								self.set_attr(space_usage_field, site_config_data['limits']['space_usage'][space_usage_field])
 		else:
-			frappe.throw("Hey developer, the site you're trying to create an \
-				instance of doesn't actually exist. You could consider setting \
-				bypass flag to 0 to actually create the site")
+			frappe.throw("The site you're trying to access doesn't actually exist.")
+
+	def create_alias(self, key, alias):
+		files = check_output("ls")
+		if alias in files:
+			frappe.throw("Sitename already exists")
+		else:
+			self.console_command(key=key, caller='create-alias', alias=alias)
+
+	def console_command(self, key, caller, alias=None, app_name=None, admin_password=None, mysql_password=None):
+		site_abspath = None
+		if alias:
+			site_abspath = os.path.abspath(os.path.join(self.name))
+		commands = {
+			"migrate": ["bench --site {site_name} migrate".format(site_name=self.name)],
+			"create-alias": ["ln -s {site_abspath} sites/{alias}".format(site_abspath=site_abspath, alias=alias)],
+			"delete-alias": ["rm sites/{alias}".format(alias=alias)],
+			"backup": ["bench --site {site_name} backup --with-files".format(site_name=self.name)],
+			"reinstall": ["bench --site {site_name} reinstall --yes --admin-password {admin_password}".format(site_name=self.name, admin_password=admin_password)],
+			"install_app": ["bench --site {site_name} install-app {app_name}".format(site_name=self.name, app_name=app_name)],
+			"uninstall_app": ["bench --site {site_name} uninstall-app {app_name} --yes".format(site_name=self.name, app_name=app_name)],
+			"drop_site": ["bench drop-site {site_name} --root-password {mysql_password}".format(site_name=self.name, mysql_password=mysql_password)]
+		}
+		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
+			commands=commands[caller],
+			doctype=self.doctype,
+			key=key,
+			docname=self.name
+		)
+		return "executed"
+
 
 @frappe.whitelist()
 def get_installable_apps(doctype, docname):
@@ -178,15 +209,19 @@ def verify_password(site_name, mysql_password):
 @frappe.whitelist()
 def create_site(site_name, install_erpnext, mysql_password, admin_password, key):
 	verify_whitelisted_call()
-	commands = "bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name, 
-		admin_password=admin_password, mysql_password=mysql_password)
+	commands = ["bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name, 
+		admin_password=admin_password, mysql_password=mysql_password)]
 	if install_erpnext == "true":
 		with open('apps.txt', 'r') as f:
 		    app_list = f.read()
 		if 'erpnext' not in app_list:
-			commands += "\rbench get-app erpnext https://github.com/frappe/erpnext.git"
-		commands += "\rbench --site {site_name} install-app erpnext".format(site_name=site_name)
-	console_command(doctype="Bench Settings", key=key, commands = commands)
+			commands.append("bench get-app erpnext")
+		commands.append("bench --site {site_name} install-app erpnext".format(site_name=site_name))
+	frappe.enqueue('bench_manager.bench_manager.utils.run_command',
+		commands=commands,
+		doctype="Bench Settings",
+		key=key
+	)
 	all_sites = check_output("ls").strip('\n').split('\n')
 	while site_name not in all_sites:
 		time.sleep(2)
@@ -194,3 +229,4 @@ def create_site(site_name, install_erpnext, mysql_password, admin_password, key)
 		all_sites = check_output("ls").strip('\n').split('\n')
 	doc = frappe.get_doc({'doctype': 'Site', 'site_name': site_name, 'app_list':'frappe', 'developer_flag':1})
 	doc.insert()
+	frappe.db.commit()

@@ -5,6 +5,7 @@ frappe.ui.form.on('Site', {
 	onload: function(frm) {
 		if (frm.doc.__islocal != 1) {
 			frm.save();
+			frm.call("update_app_alias");
 		}
 		frappe.realtime.on("Bench-Manager:reload-page", () => {
 			frm.reload_doc();
@@ -19,31 +20,65 @@ frappe.ui.form.on('Site', {
 	},
 	refresh: function(frm) {
 		$('a.grey-link:contains("Delete")').hide();
-		if (frm.doc.db_name == undefined) {
-			$('div.form-inner-toolbar').hide();
-		} else {
-			$('div.form-inner-toolbar').show();
-		}
-		let single_function_buttons = {
-			'Migrate': ' migrate',
-			'Backup Site': ' backup --with-files'
-		};
-		for (let bench_command in single_function_buttons){
-			frm.add_custom_button(__(bench_command), function() {
+		if (frm.doc.db_name == undefined) $('div.form-inner-toolbar').hide();
+		else $('div.form-inner-toolbar').show();
+		frm.add_custom_button(__('Create Alias'), function(){
+			var dialog = new frappe.ui.Dialog({
+				title: 'Alias Name',
+				fields: [
+					{fieldname: 'alias', fieldtype: 'Data', reqd:true}
+				]
+			});
+			dialog.set_primary_action(__("Create Alias"), () => {
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
-				frappe.call({
-					method: 'bench_manager.bench_manager.utils.console_command',
-					args: {
-						doctype: frm.doctype,
-						docname: frm.doc.name,
-						key: key,
-						commands: "bench --site " + frm.doc.name + single_function_buttons[bench_command]
-					},
-					btn: this
+				frm.call("create_alias", {
+					key: key,
+					alias: dialog.fields_dict.alias.value
+				}, () => {
+					dialog.hide();
 				});
 			});
-		}
+			dialog.show();
+		});
+		frm.add_custom_button(__('Delete Alias'), function(){
+			let alias_list = frm.doc.site_alias.split('\n');
+			alias_list.pop();
+			var dialog = new frappe.ui.Dialog({
+				title: 'Alias Name',
+				fields: [
+					{fieldname: 'alias', fieldtype: 'Select', reqd:true, options:alias_list}
+				]
+			});
+			dialog.set_primary_action(__("Delete Alias"), () => {
+				let key = frappe.datetime.get_datetime_as_string();
+				console_dialog(key);
+				frm.call("console_command", {
+					key: key,
+					caller: "delete-alias",
+					alias: dialog.fields_dict.alias.value
+				}, () => {
+					dialog.hide();
+				});
+			});
+			dialog.show();
+		});
+		frm.add_custom_button(__("Migrate"), function() {
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
+			frm.call("console_command", {
+				key: key,
+				caller: "migrate",
+			});
+		});
+		frm.add_custom_button(__("Backup"), function() {
+			let key = frappe.datetime.get_datetime_as_string();
+			console_dialog(key);
+			frm.call("console_command", {
+				key: key,
+				caller: "backup",
+			});
+		});
 		frm.add_custom_button(__("Reinstall"), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
@@ -65,18 +100,12 @@ frappe.ui.form.on('Site', {
 					dialog.set_primary_action(__("Reinstall"), () => {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
-						frappe.call({
-							method: 'bench_manager.bench_manager.utils.console_command',
-							args: {
-								doctype: frm.doctype,
-								docname: frm.doc.name,
-								key: key,
-								commands: `bench --site ${frm.doc.name} reinstall --yes --admin-password ${dialog.fields_dict.admin_password.value}`
-							},
-							btn: this,
-							callback: () => {
-								dialog.hide();
-							}
+						frm.call("console_command", {
+							key: key,
+							caller: "reinstall",
+							admin_password: dialog.fields_dict.admin_password.value
+						}, () => {
+							dialog.hide();
 						});
 					});
 					dialog.show();
@@ -101,17 +130,12 @@ frappe.ui.form.on('Site', {
 					dialog.set_primary_action(__("Install"), () => {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
-						frappe.call({
-							method: 'bench_manager.bench_manager.utils.console_command',
-							args: {
-								doctype: frm.doctype,
-								docname: frm.doc.name,
-								key: key,
-								commands: "bench --site "+ frm.doc.name + " install-app " + cur_dialog.fields_dict.installable_apps.value
-							},
-							callback: function(){
-								dialog.hide();
-							}
+						frm.call("console_command", {
+							key: key,
+							caller: "install_app",
+							app_name: dialog.fields_dict.installable_apps.value
+						}, () => {
+							dialog.hide();
 						});
 					});
 					dialog.show();
@@ -131,22 +155,17 @@ frappe.ui.form.on('Site', {
 						title: 'Select App',
 						fields: [
 							{'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message},
-						],
+						]
 					});
 					dialog.set_primary_action(__("Remove"), () => {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
-						frappe.call({
-							method: 'bench_manager.bench_manager.utils.console_command',
-							args: {
-								doctype: frm.doctype,
-								docname: frm.doc.name,
-								key: key,
-								commands: `bench --site ${frm.doc.name} uninstall-app ${cur_dialog.fields_dict.removable_apps.value} --yes`
-							},
-							callback: function(){
-								dialog.hide();
-							}
+						frm.call("console_command", {
+							key: key,
+							caller: "uninstall_app",
+							app_name: dialog.fields_dict.removable_apps.value
+						}, () => {
+							dialog.hide();
 						});
 					});
 					dialog.show();
@@ -184,21 +203,22 @@ frappe.ui.form.on('Site', {
 							},
 							callback: function(r){
 								if (r.message == "console"){
-									$('a.grey-link:contains("Delete")').click();
-									$('button.btn.btn-primary.btn-sm:contains("Yes")').click();
-									setTimeout( () => {
-										console_dialog(key);
-										frappe.call({
-											method: 'bench_manager.bench_manager.utils.console_command',
-											args: {
-												doctype: frm.doctype,
-												docname: frm.doc.name,
-												commands: `bench drop-site ${frm.doc.name} --root-password ${dialog.fields_dict.mysql_password.value}`,
-												key: key
-											}
-										});
-									}, 1000);
-									dialog.hide();
+									frappe.run_serially([
+										() => console_dialog(key),
+										() => frm.call("console_command", {
+											key: key,
+											caller: "drop_site",
+											mysql_password: dialog.fields_dict.mysql_password.value
+										}, () => {
+											frappe.run_serially([
+												$('a.grey-link:contains("Delete")').click(),
+												$('button.btn.btn-primary.btn-sm:contains("Yes")').click()
+											]);
+										}),
+										() => dialog.hide()
+									]);
+									
+									
 								}
 							}
 						});
@@ -207,13 +227,12 @@ frappe.ui.form.on('Site', {
 				}
 			});
 		});
-
 		frm.add_custom_button(__('View site'), () => {
 			frappe.db.get_value('Bench Settings', 'Bench Settings', 'webserver_port',
 				(r) => {
-					window.open(`http://${frm.doc.name}:${r.webserver_port}`, '_blank')
+					window.open(`http://${frm.doc.name}:${r.webserver_port}`, '_blank');
 				}
-			)
-		})
+			);
+		});
 	}
 });
