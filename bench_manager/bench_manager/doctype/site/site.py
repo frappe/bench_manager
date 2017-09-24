@@ -41,9 +41,24 @@ class Site(Document):
 	def after_command(self, commands=None):
 		frappe.publish_realtime("Bench-Manager:reload-page")	
 
+	def update_app_alias(self):
+		self.update_app_list()
+		self.update_site_alias()
+
 	def update_app_list(self):
 		# self.set_attr("app_list", '\n'.join(self.get_installed_apps()))
 		self.db_set("app_list", '\n'.join(self.get_installed_apps()))
+
+	def update_site_alias(self):
+		command =  "find . -maxdepth 1 -type l -printf '%p %l\n'"
+		symlinks = check_output(shlex.split(command)).split('\n')
+		alias_list = ''
+		for symlink in symlinks:
+			if self.name in symlink:
+				link_path, site_path = symlink.split(' ')
+				site_alias = link_path[link_path.rfind('/')+1:]+'\n'
+				alias_list += site_alias
+		self.db_set("site_alias", alias_list)
 
 	def get_installed_apps(self):
 		list_apps = check_output(shlex.split("bench --site {site_name} list-apps".format(site_name=self.site_name)), cwd='..')
@@ -102,9 +117,13 @@ class Site(Document):
 		else:
 			frappe.throw("The site you're trying to access doesn't actually exist.")
 
-	def console_command(self, key, caller, app_name=None, admin_password=None, mysql_password=None):
+	def console_command(self, key, caller, alias=None, app_name=None, admin_password=None, mysql_password=None):
+		if alias:
+			site_abspath = os.path.abspath(os.path.join(self.name))
 		commands = {
 			"migrate": ["bench --site {site_name} migrate".format(site_name=self.name)],
+			"create-alias": ["ln -s {site_abspath} sites/{alias}".format(site_abspath=site_abspath, alias=alias)],
+			"delete-alias": ["rm sites/{alias}".format(alias=alias)],
 			"backup": ["bench --site {site_name} backup --with-files".format(site_name=self.name)],
 			"reinstall": ["bench --site {site_name} reinstall --yes --admin-password {admin_password}".format(site_name=self.name, admin_password=admin_password)],
 			"install_app": ["bench --site {site_name} install-app {app_name}".format(site_name=self.name, app_name=app_name)],

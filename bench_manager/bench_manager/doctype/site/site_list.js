@@ -2,7 +2,10 @@ frappe.listview_settings['Site'] = {
 	formatters: {
 		app_list: function(val) {
 			return val.split('\n').join(', ');
-		}		
+		},
+		site_alias: function(val) {
+			return val.split('\n').join(', ');
+		}	
 	},
 	refresh: () => {
 		setTimeout( () => {

@@ -5,7 +5,7 @@ frappe.ui.form.on('Site', {
 	onload: function(frm) {
 		if (frm.doc.__islocal != 1) {
 			frm.save();
-			frm.call("update_app_list");
+			frm.call("update_app_alias");
 		}
 		frappe.realtime.on("Bench-Manager:reload-page", () => {
 			frm.reload_doc();
@@ -22,6 +22,48 @@ frappe.ui.form.on('Site', {
 		$('a.grey-link:contains("Delete")').hide();
 		if (frm.doc.db_name == undefined) $('div.form-inner-toolbar').hide();
 		else $('div.form-inner-toolbar').show();
+		frm.add_custom_button(__('Create Alias'), function(){
+			var dialog = new frappe.ui.Dialog({
+				title: 'Alias Name',
+				fields: [
+					{fieldname: 'alias', fieldtype: 'Data', reqd:true}
+				]
+			});
+			dialog.set_primary_action(__("Create Alias"), () => {
+				let key = frappe.datetime.get_datetime_as_string();
+				console_dialog(key);
+				frm.call("console_command", {
+					key: key,
+					caller: "create-alias",
+					alias: dialog.fields_dict.alias.value
+				}, () => {
+					dialog.hide();
+				});
+			});
+			dialog.show()
+		});
+		frm.add_custom_button(__('Delete Alias'), function(){
+			let alias_list = frm.doc.site_alias.split('\n');
+			alias_list.pop();
+			var dialog = new frappe.ui.Dialog({
+				title: 'Alias Name',
+				fields: [
+					{fieldname: 'alias', fieldtype: 'Select', reqd:true, options:alias_list}
+				]
+			});
+			dialog.set_primary_action(__("Delete Alias"), () => {
+				let key = frappe.datetime.get_datetime_as_string();
+				console_dialog(key);
+				frm.call("console_command", {
+					key: key,
+					caller: "delete-alias",
+					alias: dialog.fields_dict.alias.value
+				}, () => {
+					dialog.hide();
+				});
+			});
+			dialog.show()
+		});
 		frm.add_custom_button(__("Migrate"), function() {
 			let key = frappe.datetime.get_datetime_as_string();
 			console_dialog(key);
@@ -114,7 +156,7 @@ frappe.ui.form.on('Site', {
 						title: 'Select App',
 						fields: [
 							{'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message},
-						],
+						]
 					});
 					dialog.set_primary_action(__("Remove"), () => {
 						let key = frappe.datetime.get_datetime_as_string();
