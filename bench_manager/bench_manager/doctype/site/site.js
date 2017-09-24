@@ -204,13 +204,16 @@ frappe.ui.form.on('Site', {
 							callback: function(r){
 								if (r.message == "console"){
 									frappe.run_serially([
-										() => $('a.grey-link:contains("Delete")').click(),
-										() => $('button.btn.btn-primary.btn-sm:contains("Yes")').click(),
 										() => console_dialog(key),
 										() => frm.call("console_command", {
 											key: key,
 											caller: "drop_site",
 											mysql_password: dialog.fields_dict.mysql_password.value
+										}, () => {
+											frappe.run_serially([
+												$('a.grey-link:contains("Delete")').click(),
+												$('button.btn.btn-primary.btn-sm:contains("Yes")').click()
+											]);
 										}),
 										() => dialog.hide()
 									]);

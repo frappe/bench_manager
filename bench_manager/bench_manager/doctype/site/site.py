@@ -125,6 +125,7 @@ class Site(Document):
 			self.console_command(key=key, caller='create-alias', alias=alias)
 
 	def console_command(self, key, caller, alias=None, app_name=None, admin_password=None, mysql_password=None):
+		site_abspath = None
 		if alias:
 			site_abspath = os.path.abspath(os.path.join(self.name))
 		commands = {
@@ -143,6 +144,7 @@ class Site(Document):
 			key=key,
 			docname=self.name
 		)
+		return "executed"
 
 
 @frappe.whitelist()
