@@ -27,6 +27,42 @@ frappe.ui.form.on('App', {
 				});
 			});
 		} else {
+			frm.add_custom_button(__('Commit'), function(){
+				var dialog = new frappe.ui.Dialog({
+					title: 'Commit Message',
+					fields: [
+						{fieldname: 'commit_msg', fieldtype: 'Small Text', 'reqd':1, 'label':'Type in the commit message'}
+					],
+				});
+				dialog.set_primary_action(__("Commit"), () => {
+					let key = frappe.datetime.get_datetime_as_string();
+					console_dialog(key);
+					frm.call("console_command", {
+						key: key,
+						commit_msg: dialog.fields_dict.commit_msg.value,
+						caller: "commit"
+					}, () => {
+						dialog.hide();
+					});
+				});
+				dialog.show();
+			});
+			frm.add_custom_button(__('Stash'), function(){
+				let key = frappe.datetime.get_datetime_as_string();
+				console_dialog(key);
+				frm.call("console_command", {
+					key: key,
+					caller: "stash"
+				});
+			});
+			frm.add_custom_button(__('Apply Stash'), function(){
+				let key = frappe.datetime.get_datetime_as_string();
+				console_dialog(key);
+				frm.call("console_command", {
+					key: key,
+					caller: "apply-stash"
+				});
+			});
 			frm.add_custom_button(__('Pull & Rebase'), function(){
 				frappe.call({
 					method: 'bench_manager.bench_manager.doctype.app.app.get_remotes',

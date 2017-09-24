@@ -96,7 +96,7 @@ class App(Document):
 		remote, branch_name = remote.split('/')
 		self.console_command(key=key, caller='pull-rebase', branch_name=branch_name, remote=remote)
 
-	def console_command(self, key, caller, branch_name=None, remote=None):
+	def console_command(self, key, caller, branch_name=None, remote=None, commit_msg=None):
 		commands = {
 			"git_init": ["git init", "git add .", "git commit -m 'Initial Commit'"],
 			"switch_branch": ["git checkout {branch_name}".format(branch_name=branch_name)],
@@ -104,7 +104,10 @@ class App(Document):
 			"delete_branch": ["git branch -D {branch_name}".format(branch_name=branch_name)],
 			"git_fetch": ["git fetch --all"],
 			"track-remote": ["git checkout -b {branch_name} -t {remote}".format(branch_name=branch_name, remote=remote)],
-			"pull-rebase": ["git pull --rebase {remote} {branch_name}".format(branch_name=branch_name, remote=remote)]
+			"pull-rebase": ["git pull --rebase {remote} {branch_name}".format(branch_name=branch_name, remote=remote)],
+			"commit": ["git add .", 'git commit -m "{commit_msg}"'.format(commit_msg=commit_msg)],
+			"stash": ["git add .", "git stash"],
+			"apply-stash": ["git stash apply"]
 		}
 		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
 			commands=commands[caller],
