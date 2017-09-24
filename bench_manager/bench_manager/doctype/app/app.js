@@ -27,6 +27,37 @@ frappe.ui.form.on('App', {
 				});
 			});
 		} else {
+			frm.add_custom_button(__('Track Remote'), function(){
+				frappe.call({
+					method: 'bench_manager.bench_manager.doctype.app.app.get_remotes',
+					args: {
+						docname: frm.doc.name,
+					},
+					btn: this,
+					callback: function(r) {
+						var dialog = new frappe.ui.Dialog({
+							title: 'Select Remote',
+							fields: [
+								{fieldname: 'branch_name', fieldtype: 'Data', 'reqd':1, 'label':'New branch name'},
+								{fieldname: 'remote_name', fieldtype: 'Select', 'options': r.message, 'reqd':1, 'label':'Select remote to track'}
+							],
+						});
+						dialog.set_primary_action(__("Track"), () => {
+							let key = frappe.datetime.get_datetime_as_string();
+							console_dialog(key);
+							frm.call("console_command", {
+								key: key,
+								branch_name: dialog.fields_dict.branch_name.value,
+								remote: dialog.fields_dict.remote_name.value,
+								caller: "track-remote"
+							}, () => {
+								dialog.hide();
+							});
+						});
+						dialog.show();
+					}
+				});
+			});
 			frm.add_custom_button(__('Switch Branch'), function(){
 				frappe.call({
 					method: 'bench_manager.bench_manager.doctype.app.app.get_branches',
@@ -96,7 +127,7 @@ frappe.ui.form.on('App', {
 							var dialog = new frappe.ui.Dialog({
 								title: 'Select Branch',
 								fields: [
-									{'fieldname': 'delete_branch_name', 'fieldtype': 'Select', options: r.message}
+									{'fieldname': 'delete_branch_name', 'fieldtype': 'Select', options: r.message, label: 'Branch Name'}
 								],
 							});
 							dialog.set_primary_action(__("Delete"), () => {

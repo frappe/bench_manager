@@ -92,13 +92,14 @@ class App(Document):
 				instance of doesn't actually exist. You could consider setting \
 				developer flag to 0 to actually create the app")
 
-	def console_command(self, key, caller, branch_name=None):
+	def console_command(self, key, caller, branch_name=None, remote=None):
 		commands = {
 			"git_init": ["git init", "git add .", "git commit -m 'Initial Commit'"],
 			"switch_branch": ["git checkout {branch_name}".format(branch_name=branch_name)],
 			"new_branch": ["git branch {branch_name}".format(branch_name=branch_name)],
 			"delete_branch": ["git branch -D {branch_name}".format(branch_name=branch_name)],
-			"git_fetch": ["git fetch --all"]
+			"git_fetch": ["git fetch --all"],
+			"track-remote": ["git checkout -b {branch_name} -t {remote}".format(branch_name=branch_name, remote=remote)]
 		}
 		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
 			commands=commands[caller],
@@ -117,3 +118,10 @@ def get_branches(doctype, docname, current_branch):
 	branches.remove('*')
 	branches.remove(current_branch)
 	return branches
+
+@frappe.whitelist()
+def get_remotes(docname):
+	command = "git branch -r"
+	remotes = check_output(shlex.split(command), cwd=os.path.join('..', 'apps', docname)).strip('\n').split('\n  ')
+	remotes = [remote for remote in remotes if 'HEAD' not in remote]
+	return remotes

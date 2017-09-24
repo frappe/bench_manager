@@ -19,9 +19,9 @@ frappe.ui.form.on('Bench Settings', {
 	refresh: function(frm) {
 		frm.add_custom_button(__("Get App"), function(){
 			var dialog = new frappe.ui.Dialog({
-				title: 'Name of the frappe repo hosted on github',
+				title: 'App Name',
 				fields: [
-					{fieldname: 'app_name', fieldtype: 'Data', reqd:true}
+					{fieldname: 'app_name', fieldtype: 'Data', reqd:true, label: 'Name of the frappe repo hosted on github'}
 				]
 			});
 			dialog.set_primary_action(__("Get App"), () => {
