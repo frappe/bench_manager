@@ -32,15 +32,14 @@ frappe.ui.form.on('Site', {
 			dialog.set_primary_action(__("Create Alias"), () => {
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
-				frm.call("console_command", {
+				frm.call("create_alias", {
 					key: key,
-					caller: "create-alias",
 					alias: dialog.fields_dict.alias.value
 				}, () => {
 					dialog.hide();
 				});
 			});
-			dialog.show()
+			dialog.show();
 		});
 		frm.add_custom_button(__('Delete Alias'), function(){
 			let alias_list = frm.doc.site_alias.split('\n');
@@ -62,7 +61,7 @@ frappe.ui.form.on('Site', {
 					dialog.hide();
 				});
 			});
-			dialog.show()
+			dialog.show();
 		});
 		frm.add_custom_button(__("Migrate"), function() {
 			let key = frappe.datetime.get_datetime_as_string();

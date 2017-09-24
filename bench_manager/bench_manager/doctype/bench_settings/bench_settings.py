@@ -40,10 +40,11 @@ class BenchSettings(Document):
 		self.frappe_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
 			cwd=os.path.join('..', 'apps', 'frappe')).strip('\n')
 
-	def console_command(self, key, caller, branch_name=None):
+	def console_command(self, key, caller, app_name=None, branch_name=None):
 		commands = {
 			"bench_update": ["bench update"],
-			"switch_branch": [""]
+			"switch_branch": [""],
+			"get-app": ["bench get-app {app_name}".format(app_name=app_name)]
 		}
 		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
 			commands=commands[caller],			

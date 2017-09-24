@@ -117,6 +117,13 @@ class Site(Document):
 		else:
 			frappe.throw("The site you're trying to access doesn't actually exist.")
 
+	def create_alias(self, key, alias):
+		files = check_output("ls")
+		if alias in files:
+			frappe.throw("Sitename already exists")
+		else:
+			self.console_command(key=key, caller='create-alias', alias=alias)
+
 	def console_command(self, key, caller, alias=None, app_name=None, admin_password=None, mysql_password=None):
 		if alias:
 			site_abspath = os.path.abspath(os.path.join(self.name))

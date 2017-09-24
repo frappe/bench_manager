@@ -17,6 +17,26 @@ frappe.ui.form.on('Bench Settings', {
 		});
 	},
 	refresh: function(frm) {
+		frm.add_custom_button(__("Get App"), function(){
+			var dialog = new frappe.ui.Dialog({
+				title: 'Name of the frappe repo hosted on github',
+				fields: [
+					{fieldname: 'app_name', fieldtype: 'Data', reqd:true}
+				]
+			});
+			dialog.set_primary_action(__("Get App"), () => {
+				let key = frappe.datetime.get_datetime_as_string();
+				console_dialog(key);
+				frm.call("console_command", {
+					key: key,
+					caller: 'get-app',
+					app_name: dialog.fields_dict.app_name.value
+				}, () => {
+					dialog.hide();
+				});
+			});
+			dialog.show();
+		});
 		frm.add_custom_button(__('New Site'), function(){
 			frappe.call({
 				method: 'bench_manager.bench_manager.doctype.site.site.pass_exists',
