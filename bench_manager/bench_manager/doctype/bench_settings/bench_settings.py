@@ -5,7 +5,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-import json, os, shlex
+import json, os, shlex, time
 from subprocess import check_output, Popen, PIPE
 from bench_manager.bench_manager.utils import verify_whitelisted_call
 
@@ -24,6 +24,9 @@ class BenchSettings(Document):
 	def validate(self):
 		self.sync_site_config()
 		self.update_git_details()
+		current_time = frappe.utils.time.time()
+		if current_time - self.last_sync_timestamp > 10*60:
+			sync_all(in_background=True)
 
 	def sync_site_config(self):
 		common_site_config_path = 'common_site_config.json'
@@ -47,7 +50,7 @@ class BenchSettings(Document):
 			"get-app": ["bench get-app {app_name}".format(app_name=app_name)]
 		}
 		frappe.enqueue('bench_manager.bench_manager.utils.run_command',
-			commands=commands[caller],			
+			commands=commands[caller],
 			doctype=self.doctype,
 			key=key,
 			docname=self.name
@@ -220,5 +223,6 @@ def sync_all(in_background=False):
 	sync_sites()
 	sync_apps()
 	sync_backups()
+	frappe.set_value('Bench Settings', None, 'last_sync_timestamp', frappe.utils.time.time())
 	if not in_background:
 		frappe.msgprint('Sync Complete')
