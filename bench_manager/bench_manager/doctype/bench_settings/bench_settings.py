@@ -214,9 +214,10 @@ def get_hash(date_time_hash):
 	return date_time_hash.split('_')[2]
 
 @frappe.whitelist()
-def sync_all():
+def sync_all(in_background=False):
 	verify_whitelisted_call()
 	sync_sites()
 	sync_apps()
 	sync_backups()
-	frappe.msgprint('Sync Complete')
+	if not in_background:
+		frappe.msgprint('Sync Complete')

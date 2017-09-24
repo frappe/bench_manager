@@ -5,6 +5,7 @@ frappe.ui.form.on('Site', {
 	onload: function(frm) {
 		if (frm.doc.__islocal != 1) {
 			frm.save();
+			frm.call("update_app_list");
 		}
 		frappe.realtime.on("Bench-Manager:reload-page", () => {
 			frm.reload_doc();
