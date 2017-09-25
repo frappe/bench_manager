@@ -55,12 +55,22 @@ There are 5 main doctypes associated with this app.
       * It applies schema changes and data migrations if any.
       * Migrate should be run after you pull updates from any Frappé app.
   2. Backup Site 
-      * This button backs up the site with all the files ie. it emulates ``` bench update ```
-      * By default the sites are backed up with all the files
+      * This button backs up the site with all the files in it.
   3. Install App
       * On clicking this button a ui-dialog pops up where one can select and install any app onto the site.
   4. Uninstall App
-      * Lets you uninstall an app from the site. 
+      * Lets you uninstall an app from the site.
+  5. Reinstall
+      * Lets you reinstall a site.
+  6. Drop Site
+      * Lets you delete a site. The backup for the site is automatically taken.
+  7. View Site
+      * Lets you directly access the site. At the click of a button, a new-tab is opened in your browser opening the site.
+  8. Create Alias
+      * Create multiple sites all pointing to the same site, i.e. create multiple aliases for the site. 
+      * This can also be considered as an alternative to renaming a site.
+  9. Delete Alias
+      * Delete the aliases created.
 
 ### 3. Site Backup
 
