@@ -50,15 +50,10 @@ class Site(Document):
 		self.db_set("app_list", '\n'.join(self.get_installed_apps()))
 
 	def update_site_alias(self):
-		command =  "find . -maxdepth 1 -type l -print0"
-		link_path = check_output(shlex.split(command)).strip('./').split('./')
 		alias_list = ''
-		for link in link_path:
-			link = link[0:link.find('/')]
-			command =  "readlink -f {link}".format(link=link)
-			site_path = check_output(shlex.split(command))
-			if self.name in site_path:
-				alias_list += link+'\n'
+		for link in os.listdir('.'):
+			if os.path.islink(link) and self.name in os.path.realpath(link):
+					alias_list += link+'\n'
 		self.db_set("site_alias", alias_list)
 
 	def get_installed_apps(self):
