@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
-import os, re, json, time, _mysql, shlex
+import os, re, json, time, pymysql, shlex
 from bench_manager.bench_manager.utils import verify_whitelisted_call
 
 class Site(Document):
@@ -195,7 +195,7 @@ def pass_exists(doctype, docname=''):
 def verify_password(site_name, mysql_password):
 	verify_whitelisted_call()
 	try:
-		db = _mysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=mysql_password)
+		db = pymysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=mysql_password)
 		db.close()
 	except Exception as e:
 		print e
