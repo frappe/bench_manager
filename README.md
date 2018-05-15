@@ -19,7 +19,7 @@ In frappe-bench directory execute:
 $ bench update
 ```
 
-## ![Wiki](https://github.com/codingCoffee/bench_manager/wiki)
+## [Wiki](https://github.com/frappe/bench_manager/wiki)
 
 ## Features
 
