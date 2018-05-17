@@ -198,7 +198,7 @@ def verify_password(site_name, mysql_password):
 		db = pymysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=mysql_password)
 		db.close()
 	except Exception as e:
-		print e
+		print (e)
 		frappe.throw("MySQL password is incorrect")
 	return "console"
 
