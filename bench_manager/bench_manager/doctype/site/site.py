@@ -198,7 +198,7 @@ def verify_password(site_name, mysql_password):
 		db = pymysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=mysql_password)
 		db.close()
 	except Exception as e:
-		print e
+		print (e)
 		frappe.throw("MySQL password is incorrect")
 	return "console"
 
@@ -221,7 +221,7 @@ def create_site(site_name, install_erpnext, mysql_password, admin_password, key)
 	all_sites = check_output("ls").strip('\n').split('\n')
 	while site_name not in all_sites:
 		time.sleep(2)
-		print "waiting for site creation..."
+		print ("waiting for site creation...")
 		all_sites = check_output("ls").strip('\n').split('\n')
 	doc = frappe.get_doc({'doctype': 'Site', 'site_name': site_name, 'app_list':'frappe', 'developer_flag':1})
 	doc.insert()
