@@ -2,7 +2,7 @@
 # Copyright (c) 2017, Frappé and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe.model.document import Document
 from subprocess import Popen, check_output, PIPE, STDOUT
@@ -61,3 +61,11 @@ def _refresh(doctype, docname, commands):
 def verify_whitelisted_call():
 	if 'bench_manager' not in frappe.get_installed_apps():
 		raise ValueError("This site does not have bench manager installed.")
+
+def safe_decode(string, encoding = 'utf-8'):
+	try:
+		string = string.decode(encoding)
+	except Exception:
+		pass
+	return string
+

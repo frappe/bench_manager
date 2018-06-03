@@ -2,12 +2,12 @@
 # Copyright (c) 2017, Frappé and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE, STDOUT
 import os, re, time, shlex
-from bench_manager.bench_manager.utils import verify_whitelisted_call
+from bench_manager.bench_manager.utils import verify_whitelisted_call, safe_decode
 
 class App(Document):
 	app_info_fields = ["app_title", "app_description", "app_publisher", "app_email",
@@ -54,7 +54,7 @@ class App(Document):
 					pass
 			os.remove(apps_file)
 			with open(apps_file, 'w') as f:
-			    f.writelines(apps)
+				f.writelines(apps)
 			if self.app_name != '':
 				check_output(shlex.split("rm -r ../apps/{app_name}".format(app_name=self.app_name)))
 
@@ -80,9 +80,9 @@ class App(Document):
 			self.app_title = self.app_name
 			self.app_title = self.app_title.replace('-', ' ')
 			self.app_title = self.app_title.replace('_', ' ')
-			if os.path.isdir(os.path.join('..', 'apps', self.app_name, '.git')): #'../apps/'+self.app_name+'/.git')
-				self.current_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
-					cwd=os.path.join('..', 'apps', self.app_name)).strip('\n')#'../apps/'+self.app_name
+			if os.path.isdir(os.path.join('..', 'apps', self.app_name, '.git')):
+				self.current_git_branch = safe_decode(check_output("git rev-parse --abbrev-ref HEAD".split(),
+					cwd=os.path.join('..', 'apps', self.app_name))).strip('\n')
 				self.is_git_repo = True
 			else:
 				self.current_git_branch = None

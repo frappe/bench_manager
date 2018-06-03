@@ -2,12 +2,12 @@
 # Copyright (c) 2017, Frappé and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe.model.document import Document
 from subprocess import check_output, Popen, PIPE
 import os, re, json, time, pymysql, shlex
-from bench_manager.bench_manager.utils import verify_whitelisted_call
+from bench_manager.bench_manager.utils import verify_whitelisted_call, safe_decode
 
 class Site(Document):
 	site_config_fields = ["maintenance_mode", "pause_scheduler", "db_name", "db_password",
@@ -58,9 +58,9 @@ class Site(Document):
 
 	def get_installed_apps(self):
 		list_apps = check_output(shlex.split("bench --site {site_name} list-apps".format(site_name=self.site_name)), cwd='..')
-		if 'frappe' not in list_apps:
+		if 'frappe' not in safe_decode(list_apps):
 			list_apps = 'frappe\n' + list_apps
-		return list_apps.strip('\n').split('\n')
+		return safe_decode(list_apps).strip('\n').split('\n')
 
 	def update_site_config(self):
 		site_config_path = os.path.join(self.site_name, 'site_config.json')
@@ -184,7 +184,7 @@ def pass_exists(doctype, docname=''):
 	#FF FT TF
 	if ret['condition'][1] == 'F':
 		ret['condition'] = ret['condition'][0] + 'T' if site_config_data.get('admin_password') else 'F'
-		ret['admin_password'] = site_config_data.get('admin_password') 
+		ret['admin_password'] = site_config_data.get('admin_password')
 	else:
 		if site_config_data.get('admin_password'):
 			ret['condition'] = ret['condition'][0] + 'T'
@@ -195,7 +195,7 @@ def pass_exists(doctype, docname=''):
 def verify_password(site_name, mysql_password):
 	verify_whitelisted_call()
 	try:
-		db = pymysql.connect(host=frappe.conf.db_host or u'localhost', user=u'root' ,passwd=mysql_password)
+		db = pymysql.connect(host=frappe.conf.db_host or 'localhost', user='root' ,passwd=mysql_password)
 		db.close()
 	except Exception as e:
 		print (e)
@@ -209,7 +209,7 @@ def create_site(site_name, install_erpnext, mysql_password, admin_password, key)
 		admin_password=admin_password, mysql_password=mysql_password)]
 	if install_erpnext == "true":
 		with open('apps.txt', 'r') as f:
-		    app_list = f.read()
+			app_list = f.read()
 		if 'erpnext' not in app_list:
 			commands.append("bench get-app erpnext")
 		commands.append("bench --site {site_name} install-app erpnext".format(site_name=site_name))
@@ -221,7 +221,7 @@ def create_site(site_name, install_erpnext, mysql_password, admin_password, key)
 	all_sites = check_output("ls").strip('\n').split('\n')
 	while site_name not in all_sites:
 		time.sleep(2)
-		print "waiting for site creation..."
+		print("waiting for site creation...")
 		all_sites = check_output("ls").strip('\n').split('\n')
 	doc = frappe.get_doc({'doctype': 'Site', 'site_name': site_name, 'app_list':'frappe', 'developer_flag':1})
 	doc.insert()

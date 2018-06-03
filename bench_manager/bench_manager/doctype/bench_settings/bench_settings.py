@@ -2,12 +2,12 @@
 # Copyright (c) 2017, Frappe and contributors
 # For license information, please see license.txt
 
-from __future__ import unicode_literals
+
 import frappe
 from frappe.model.document import Document
 import json, os, shlex, time
 from subprocess import check_output, Popen, PIPE
-from bench_manager.bench_manager.utils import verify_whitelisted_call
+from bench_manager.bench_manager.utils import verify_whitelisted_call, safe_decode
 
 class BenchSettings(Document):
 	site_config_fields = ["background_workers", "shallow_clone", "admin_password",
@@ -40,8 +40,8 @@ class BenchSettings(Document):
 					pass
 
 	def update_git_details(self):
-		self.frappe_git_branch = check_output("git rev-parse --abbrev-ref HEAD".split(),
-			cwd=os.path.join('..', 'apps', 'frappe')).strip('\n')
+		self.frappe_git_branch = safe_decode(check_output("git rev-parse --abbrev-ref HEAD".split(),
+			cwd=os.path.join('..', 'apps', 'frappe'))).strip('\n')
 
 	def console_command(self, key, caller, app_name=None, branch_name=None):
 		commands = {
@@ -85,8 +85,8 @@ def sync_apps():
 	app_entries = [x['name'] for x in frappe.get_all('App')]
 	create_apps = list(set(app_dirs) - set(app_entries))
 	delete_apps = list(set(app_entries) - set(app_dirs))
-	create_apps = filter(lambda a: a != '', create_apps)
-	delete_apps = filter(lambda a: a != '', delete_apps)
+	create_apps = [app for app in create_apps if app != '']
+	delete_apps = [app for app in delete_apps if app != '']
 
 	for app in create_apps:
 		doc = frappe.get_doc({'doctype': 'App', 'app_name': app,
@@ -172,8 +172,7 @@ def update_backup_list():
 	all_sites.extend(archived_sites)
 	for root, dirs, files in os.walk("../sites/", topdown=True):
 		for site in dirs:
-			files_list = check_output(shlex.split("ls ../sites/{site}".format(site=site))).split('\n')
-			if 'site_config.json' in files_list:
+			if os.path.isfile("../sites/{}/site_config.json".format(site)):
 				sites.append(site)
 		break
 	sites = ["../sites/"+x for x in sites]
@@ -226,3 +225,4 @@ def sync_all(in_background=False):
 	frappe.set_value('Bench Settings', None, 'last_sync_timestamp', frappe.utils.time.time())
 	if not in_background:
 		frappe.msgprint('Sync Complete')
+
