@@ -218,11 +218,11 @@ def get_hash(date_time_hash):
 
 @frappe.whitelist()
 def sync_all(in_background=False):
-	verify_whitelisted_call()
-	sync_sites()
-	sync_apps()
-	sync_backups()
-	frappe.set_value('Bench Settings', None, 'last_sync_timestamp', frappe.utils.time.time())
 	if not in_background:
-		frappe.msgprint('Sync Complete')
+		frappe.msgprint('Sync has started and will run in the background...')
+	verify_whitelisted_call()
+	frappe.enqueue('bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_sites')
+	frappe.enqueue('bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_apps')
+	frappe.enqueue('bench_manager.bench_manager.doctype.bench_settings.bench_settings.sync_backups')
+	frappe.set_value('Bench Settings', None, 'last_sync_timestamp', frappe.utils.time.time())
 
