@@ -184,7 +184,7 @@ def update_backup_list():
 	for site in all_sites:
 		backup_path = os.path.join(site, "private", "backups")
 		try:
-			backup_files = check_output(shlex.split("ls ./{backup_path}".format(backup_path=backup_path))).strip('\n').split('\n')
+			backup_files = safe_decode(check_output(shlex.split("ls ./{backup_path}".format(backup_path=backup_path)))).strip('\n').split('\n')
 			backup_files = [file for file in backup_files if "database.sql" in file]
 			for backup_file in backup_files:
 				inner_response = {}

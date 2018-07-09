@@ -130,6 +130,6 @@ def get_branches(doctype, docname, current_branch):
 @frappe.whitelist()
 def get_remotes(docname):
 	command = "git branch -r"
-	remotes = check_output(shlex.split(command), cwd=os.path.join('..', 'apps', docname)).strip('\n').split('\n  ')
+	remotes = safe_decode(check_output(shlex.split(command), cwd=os.path.join('..', 'apps', docname))).strip('\n').split('\n  ')
 	remotes = [remote for remote in remotes if 'HEAD' not in remote]
 	return remotes

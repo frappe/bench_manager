@@ -59,7 +59,7 @@ class Site(Document):
 	def get_installed_apps(self):
 		list_apps = check_output(shlex.split("bench --site {site_name} list-apps".format(site_name=self.site_name)), cwd='..')
 		if 'frappe' not in safe_decode(list_apps):
-			list_apps = 'frappe\n' + list_apps
+			list_apps = "frappe"
 		return safe_decode(list_apps).strip('\n').split('\n')
 
 	def update_site_config(self):
@@ -205,7 +205,7 @@ def verify_password(site_name, mysql_password):
 @frappe.whitelist()
 def create_site(site_name, install_erpnext, mysql_password, admin_password, key):
 	verify_whitelisted_call()
-	commands = ["bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name, 
+	commands = ["bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} {site_name}".format(site_name=site_name,
 		admin_password=admin_password, mysql_password=mysql_password)]
 	if install_erpnext == "true":
 		with open('apps.txt', 'r') as f:
@@ -218,11 +218,11 @@ def create_site(site_name, install_erpnext, mysql_password, admin_password, key)
 		doctype="Bench Settings",
 		key=key
 	)
-	all_sites = check_output("ls").strip('\n').split('\n')
+	all_sites = safe_decode(check_output("ls")).strip('\n').split('\n')
 	while site_name not in all_sites:
 		time.sleep(2)
 		print("waiting for site creation...")
-		all_sites = check_output("ls").strip('\n').split('\n')
+		all_sites = safe_decode(check_output("ls")).strip('\n').split('\n')
 	doc = frappe.get_doc({'doctype': 'Site', 'site_name': site_name, 'app_list':'frappe', 'developer_flag':1})
 	doc.insert()
 	frappe.db.commit()
