@@ -24,12 +24,12 @@ frappe.ui.form.on('Site', {
 		else $('div.form-inner-toolbar').show();
 		frm.add_custom_button(__('Create Alias'), function(){
 			var dialog = new frappe.ui.Dialog({
-				title: 'Alias Name',
+				title: __('Alias name'),
 				fields: [
 					{fieldname: 'alias', fieldtype: 'Data', reqd:true}
 				]
 			});
-			dialog.set_primary_action(__("Create Alias"), () => {
+			dialog.set_primary_action(__("Create"), () => {
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
 				frm.call("create_alias", {
@@ -45,12 +45,12 @@ frappe.ui.form.on('Site', {
 			let alias_list = frm.doc.site_alias.split('\n');
 			alias_list.pop();
 			var dialog = new frappe.ui.Dialog({
-				title: 'Alias Name',
+				title: __('Alias name'),
 				fields: [
 					{fieldname: 'alias', fieldtype: 'Select', reqd:true, options:alias_list}
 				]
 			});
-			dialog.set_primary_action(__("Delete Alias"), () => {
+			dialog.set_primary_action(__("Delete"), () => {
 				let key = frappe.datetime.get_datetime_as_string();
 				console_dialog(key);
 				frm.call("console_command", {
@@ -89,7 +89,7 @@ frappe.ui.form.on('Site', {
 				btn: this,
 				callback: function(r){
 					var dialog = new frappe.ui.Dialog({
-						title: "Are you sure?",
+						title: __('Are you sure?'),
 						fields: [
 							{fieldname: 'admin_password', fieldtype: 'Password',
 								label: 'Administrator Password', reqd: r['message']['condition'][0] != 'T',
@@ -122,12 +122,12 @@ frappe.ui.form.on('Site', {
 				btn: this,
 				callback: function(r) {
 					var dialog = new frappe.ui.Dialog({
-						title: 'Select App',
+						title: __('Select app'),
 						fields: [
 							{'fieldname': 'installable_apps', 'fieldtype': 'Select', options: r.message}
 						],
 					});
-					dialog.set_primary_action(__("Install"), () => {
+					dialog.set_primary_action(__("Install App"), () => {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
 						frm.call("console_command", {
@@ -152,12 +152,12 @@ frappe.ui.form.on('Site', {
 				btn: this,
 				callback: function(r) {
 					var dialog = new frappe.ui.Dialog({
-						title: 'Select App',
+						title: __('Select app'),
 						fields: [
 							{'fieldname': 'removable_apps', 'fieldtype': 'Select', options: r.message},
 						]
 					});
-					dialog.set_primary_action(__("Remove"), () => {
+					dialog.set_primary_action(__("Uninstall App"), () => {
 						let key = frappe.datetime.get_datetime_as_string();
 						console_dialog(key);
 						frm.call("console_command", {
@@ -182,7 +182,7 @@ frappe.ui.form.on('Site', {
 				btn: this,
 				callback: function(r){
 					var dialog = new frappe.ui.Dialog({
-						title: "Are you sure?",
+						title: __('Are you sure?'),
 						fields: [
 							{fieldname: 'admin_password', fieldtype: 'Password',
 								label: 'Administrator Password', reqd: r['message']['condition'][0] != 'T',
@@ -227,7 +227,7 @@ frappe.ui.form.on('Site', {
 				}
 			});
 		});
-		frm.add_custom_button(__('View site'), () => {
+		frm.add_custom_button(__('View Site'), () => {
 			frappe.db.get_value('Bench Settings', 'Bench Settings', 'webserver_port',
 				(r) => {
 					window.open(`http://${frm.doc.name}:${r.webserver_port}`, '_blank');
