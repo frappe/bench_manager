@@ -1,0 +1,58 @@
+Bench Manager,Gestor de Bench
+
+Bench Setup,Configuración de Bench
+Bench Management,Gestión de Bench
+
+App,Aplicación
+App Title,Título de la aplicación
+App Description,Descripción de la aplicación
+App Publisher,Editor de la aplicación
+App Email,Correo electrónico de la aplicación
+App Icon,Icono de la aplicación
+App Color,Color de la aplicación
+App License, Licencia de la aplicación
+Current Git Branch, Rama actual de Git
+
+Commit,Commit
+Switch Branch,Cambiar de Rama
+New Branch,Nueva Rama
+Delete Branch,Eliminar Rama
+
+Site,Sitio
+Site Alias,Alias del sitio
+App List,Lista de aplicaciones
+Developer Mode,Modo Desarrollador
+Database Details,Detalles de la base de datos
+DB Name,Nombre de la base de datos
+DB Password,Contraseña de la base de datos
+Maintenance Mode,Modo de mantenimiento
+Pause Scheduler,Pausar programador
+Disable Website Cache,Deshabilitar la caché del sitio web
+Space Usage,Uso de espacio
+Backup Size,Tamaño de la copia de seguridad
+Database Size,Tamaño de la base de datos
+Files Size,Tamaño de archivos
+
+Create Alias,Crear Alias
+Delete Alias,Eliminar Alias
+Migrate,Migrar
+Reinstall,Reinstalar
+Install App,Instalar Aplicación
+Uninstall App,Desinstalar Aplicación
+Drop Site,Borrar Sitio
+View Site,Ver Sitio
+
+Alias name,Nombre de alias
+Select app,Seleccionar aplicación
+
+Site Backup,Copia de seguridad del sitio
+
+Bench Manager Command,Comando de Bench Manager
+Time taken,Tiempo tomado
+Command,Comando
+
+Bench Settings,Configuración de Bench
+
+Get App,Obtener Aplicación
+New Site,Sitio Nuevo
+Sync,Sincronizar
