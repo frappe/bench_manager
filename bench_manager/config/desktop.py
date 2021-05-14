@@ -2,6 +2,7 @@
 
 from frappe import _
 
+
 def get_data():
 	return [
 		{
@@ -10,6 +11,6 @@ def get_data():
 			"icon": "fa fa-gamepad",
 			"type": "module",
 			"label": _("Bench Manager"),
-			"link": "Form/Bench Settings"
+			"link": "Form/Bench Settings",
 		}
 	]

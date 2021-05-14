@@ -6,5 +6,6 @@
 import frappe
 import unittest
 
+
 class TestBenchSettings(unittest.TestCase):
 	pass

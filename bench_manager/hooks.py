@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from . import __version__ as app_version
 
 app_name = "bench_manager"
@@ -39,7 +37,7 @@ app_include_js = "/assets/bench_manager/js/bench_manager.js"
 
 # website user home page (by Role)
 # role_home_page = {
-#	"Role": "home_page"
+# 	"Role": "home_page"
 # }
 
 # Website user home page (by function)
@@ -84,7 +82,7 @@ app_include_js = "/assets/bench_manager/js/bench_manager.js"
 # 		"on_update": "method",
 # 		"on_cancel": "method",
 # 		"on_trash": "method"
-#	}
+# 	}
 # }
 
 # Scheduled Tasks

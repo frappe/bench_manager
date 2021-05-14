@@ -6,5 +6,6 @@
 import frappe
 import unittest
 
+
 class TestSite(unittest.TestCase):
 	pass
