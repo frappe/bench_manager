@@ -74,10 +74,23 @@ class Site(Document):
 		self.db_set("site_alias", alias_list)
 
 	def get_installed_apps(self):
-		list_apps = check_output(
-			shlex.split("bench --site {site_name} list-apps".format(site_name=self.site_name)),
-			cwd="..",
-		)
+		all_sites = safe_decode(check_output("ls")).strip("\n").split("\n")
+
+		retry = 0
+		while self.site_name not in all_sites and retry < 3:
+			time.sleep(2)
+			print("waiting for site creation...")
+			retry += 1
+			all_sites = safe_decode(check_output("ls")).strip("\n").split("\n")
+
+		if retry == 3 and self.site_name not in all_sites:
+			list_apps = "frappe"
+		else:
+			list_apps = check_output(
+				shlex.split("bench --site {site_name} list-apps".format(site_name=self.site_name)),
+				cwd="..",
+			)
+
 		if "frappe" not in safe_decode(list_apps):
 			list_apps = "frappe"
 		return safe_decode(list_apps).strip("\n").split("\n")

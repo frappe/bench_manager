@@ -84,9 +84,14 @@ def _close_the_doc(start_time, key, console_dump, status, user):
 	for i in console_dump:
 		i = i.split("\r")
 		final_console_dump += "\n" + i[-1]
-	frappe.set_value("Bench Manager Command", key, "console", final_console_dump)
-	frappe.set_value("Bench Manager Command", key, "status", status)
-	frappe.set_value("Bench Manager Command", key, "time_taken", time_taken)
+
+	# For Webhook to trigger using cmd.save()
+	cmd = frappe.get_doc("Bench Manager Command", key)
+	cmd.console = final_console_dump
+	cmd.status = status
+	cmd.time_taken = time_taken
+	cmd.save()
+
 	frappe.publish_realtime(
 		key,
 		"\n\n" + status + "!\nThe operation took " + str(time_taken) + " seconds",
