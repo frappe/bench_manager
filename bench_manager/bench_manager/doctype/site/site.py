@@ -46,9 +46,6 @@ class Site(Document):
 				time.sleep(2)
 			self.sync_site_config()
 			self.app_list = "frappe"
-			if self.developer_flag == 1:
-				self.update_app_list()
-			self.developer_flag = 0
 		else:
 			if self.developer_flag == 0:
 				self.update_site_config()
@@ -76,14 +73,7 @@ class Site(Document):
 	def get_installed_apps(self):
 		all_sites = safe_decode(check_output("ls")).strip("\n").split("\n")
 
-		retry = 0
-		while self.site_name not in all_sites and retry < 3:
-			time.sleep(2)
-			print("waiting for site creation...")
-			retry += 1
-			all_sites = safe_decode(check_output("ls")).strip("\n").split("\n")
-
-		if retry == 3 and self.site_name not in all_sites:
+		if self.site_name not in all_sites:
 			list_apps = "frappe"
 		else:
 			list_apps = check_output(
@@ -294,8 +284,9 @@ def create_site(site_name, install_erpnext, mysql_password, admin_password, key)
 		commands.append(
 			"bench --site {site_name} install-app erpnext".format(site_name=site_name)
 		)
+		commands.append(f"bench --site {site_name} migrate".format(site_name=site_name))
 	frappe.enqueue(
-		"bench_manager.bench_manager.utils.run_command",
+		"bench_manager.bench_manager.doctype.site.site.jop_site_creation",
 		commands=commands,
 		doctype="Bench Settings",
 		key=key,
@@ -310,3 +301,12 @@ def create_site(site_name, install_erpnext, mysql_password, admin_password, key)
 	)
 	doc.insert()
 	frappe.db.commit()
+
+def jop_site_creation(commands, doctype, key):
+    from bench_manager.bench_manager.utils import run_command
+    run_command(commands=commands,doctype="Bench Settings",key=key)
+    site = frappe.get_doc("Site",key)
+    if site.developer_flag == 1:
+            site.update_app_list()
+    site.save()
+    frappe.db.commit()
