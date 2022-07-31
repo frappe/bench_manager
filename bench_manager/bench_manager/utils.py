@@ -6,7 +6,6 @@
 import re
 import shlex
 from subprocess import PIPE, STDOUT, Popen
-
 import frappe
 from frappe.model.document import Document
 
@@ -48,7 +47,7 @@ def run_command(commands, doctype, key, cwd="..", docname=" ", after_command=Non
 			)
 			for c in iter(lambda: safe_decode(terminal.stdout.read(1)), ""):
 				frappe.publish_realtime(key, c, user=frappe.session.user)
-				console_dump += c
+				console_dump += str(c)
 		if terminal.wait():
 			_close_the_doc(
 				start_time, key, console_dump, status="Failed", user=frappe.session.user
