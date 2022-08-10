@@ -90,7 +90,7 @@ def restore_backup(
 				site_name=site_name, password_suffix=password_suffix
 			)
 		)
-	command = "bench --site {site_name} --force restore {backup_file_path}_database.sql".format(
+	command = "bench --site {site_name} --force restore {backup_file_path}-database.sql".format(
 		site_name=site_name, backup_file_path=backup.file_path
 	)
 	if not os.path.isfile(
