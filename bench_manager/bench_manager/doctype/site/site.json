@@ -19,7 +19,7 @@
   "db_password",
   "backup_settings_section",
   "auto_backup",
-  "frequancy",
+  "frequency",
   "other_settings",
   "maintenance_mode",
   "pause_scheduler",
@@ -224,9 +224,9 @@
    "label": "Auto Backup"
   },
   {
-   "fieldname": "frequancy",
+   "fieldname": "frequency",
    "fieldtype": "Select",
-   "label": "Frequancy",
+   "label": "Frequency",
    "options": "\nDaily\nWeekly\nMonthly"
   }
  ],
