@@ -384,16 +384,16 @@ def run_command(commands, doctype, key, cwd="..", docname=" ", after_command=Non
 			commands=commands,
 		)
 
-def backup_daily_sites():
+def backup_sites_with_daily_option():
     site_list = frappe.get_list("Site",filters={"frequancy":"Daily","auto_backup":1})
     if site_list:
         create_backup(site_list)
-def backup_weekly_sites():
+def backup_sites_with_weekly_option():
     site_list = frappe.get_list("Site",filters={"frequancy":"Weekly","auto_backup":1})
     if site_list:
         create_backup(site_list)
 
-def backup_monthly_sites():
+def backup_sites_with_monthly_option():
     site_list = frappe.get_list("Site",filters={"frequancy":"Monthly","auto_backup":1})
     if site_list:
         create_backup(site_list)
