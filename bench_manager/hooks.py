@@ -88,7 +88,17 @@ app_include_js = "/assets/bench_manager/js/bench_manager.js"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
+    "daily_long": [
+		"bench_manager.bench_manager.doctype.bench_settings.bench_settings.backup_sites_with_daily_option"
+	],
+    "monthly_long": [
+		"bench_manager.bench_manager.doctype.bench_settings.bench_settings.backup_sites_with_monthly_option"
+	],
+    "weekly_long":[
+        "bench_manager.bench_manager.doctype.bench_settings.bench_settings.backup_sites_with_weekly_option"
+		
+	]
 # 	"all": [
 # 		"bench_manager.tasks.all"
 # 	],
@@ -104,7 +114,7 @@ app_include_js = "/assets/bench_manager/js/bench_manager.js"
 # 	"monthly": [
 # 		"bench_manager.tasks.monthly"
 # 	]
-# }
+}
 
 # Testing
 # -------
