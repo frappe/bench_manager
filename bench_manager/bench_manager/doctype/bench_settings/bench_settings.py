@@ -2,12 +2,10 @@
 # Copyright (c) 2017, Frappe and contributors
 # For license information, please see license.txt
 
-
 import json
 import os
 import shlex
 import sys
-import time
 from subprocess import PIPE, Popen, check_output
 from datetime import datetime,timedelta
 import traceback
@@ -18,6 +16,7 @@ import re
 from subprocess import PIPE, STDOUT, Popen
 from bench_manager.bench_manager.utils import _close_the_doc
 from bench_manager.bench_manager.utils import safe_decode
+from urllib.parse import parse_qs, urlparse
 
 import frappe
 from bench_manager.bench_manager.utils import (
@@ -25,7 +24,29 @@ from bench_manager.bench_manager.utils import (
 	verify_whitelisted_call,
 )
 from frappe.model.document import Document
+import json
+import os
+import dropbox
+from rq.timeouts import JobTimeoutException
 
+import frappe
+from frappe import _
+from frappe.integrations.offsite_backup_utils import (
+	get_chunk_site,
+	send_email,
+	validate_file_size,
+)
+from frappe.integrations.utils import make_post_request
+from frappe.model.document import Document
+from frappe.utils import (
+	cint,
+	encode,
+	get_url,
+	get_request_site_address,
+)
+from frappe.utils.background_jobs import enqueue
+
+ignore_list = [".DS_Store"]
 
 class BenchSettings(Document):
 	site_config_fields = [
@@ -386,28 +407,291 @@ def run_command(commands, doctype, key, cwd="..", docname=" ", after_command=Non
 
 
 def backup_sites_with_daily_option():
-    site_list = frappe.get_list("Site",filters={"frequency":"Daily","auto_backup":1})
+    site_list = frappe.get_list("Site",filters={"frequency":"Daily","auto_backup":1,"dropbox_backup":0})
     if site_list:
         create_backup(site_list)
+        
 def backup_sites_with_weekly_option():
-    site_list = frappe.get_list("Site",filters={"frequency":"Weekly","auto_backup":1})
+    site_list = frappe.get_list("Site",filters={"frequency":"Weekly","auto_backup":1,"dropbox_backup":0})
     if site_list:
         create_backup(site_list)
 
 def backup_sites_with_monthly_option():
-    site_list = frappe.get_list("Site",filters={"frequency":"Monthly","auto_backup":1})
+    site_list = frappe.get_list("Site",filters={"frequency":"Monthly","auto_backup":1,"dropbox_backup":0})
     if site_list:
         create_backup(site_list)
 
+
+def dropbox_backup_sites_with_daily_option():
+    site_list = frappe.get_list("Site",filters={"frequency":"Daily","auto_backup":1,"dropbox_backup":1})
+    if site_list:
+        take_dropbox_backup(site_list)
+        
+def dropbox_backup_sites_with_weekly_option():
+    site_list = frappe.get_list("Site",filters={"frequency":"Weekly","auto_backup":1,"dropbox_backup":1})
+    if site_list:
+        take_dropbox_backup(site_list)
+
+def dropbox_backup_sites_with_monthly_option():
+    site_list = frappe.get_list("Site",filters={"frequency":"Monthly","auto_backup":1,"dropbox_backup":1})
+    if site_list:
+        take_dropbox_backup(site_list)
+
 def create_backup(site_list):
-    key = datetime.now()
+    from bench_manager.bench_manager.utils import run_command
     for i in site_list:
         site_doc = frappe.get_doc("Site",i.name)
-        key += timedelta(seconds=1)
-        frappe.enqueue(
-			"bench_manager.bench_manager.utils.run_command",
-			commands=["bench --site {site_name} backup --with-files".format(site_name=i.name)],
-			doctype=site_doc.doctype,
-			key=str(key),
-			docname=i.name,
-			)  
+        key = datetime.now() + timedelta(seconds=1)
+        commands=["bench --site {site_name} backup --with-files".format(site_name=i.name)]
+        doctype=site_doc.doctype
+        key=key.strftime("%Y/%m/%d, %H:%M:%S")
+        docname=i.name
+        run_command(commands, doctype, key, docname)
+
+
+def take_dropbox_backup(site_list):
+	"""Enqueue longjob for taking backup to dropbox"""
+	enqueue(
+		"bench_manager.bench_manager.doctype.bench_settings.bench_settings.take_backup_to_dropbox",
+		site_list = site_list,
+		queue="long",
+		timeout=1500,
+	)
+	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
+
+
+def take_backup_to_dropbox(site_list,retry_count=0, upload_db_backup=True):
+	try:
+		backup_to_dropbox(site_list,upload_db_backup)
+		if cint(frappe.db.get_value("Bench Settings", None, "send_email_for_successful_backup")):
+			send_email(True, "Dropbox", "Bench Settings", "send_notifications_to")
+	except JobTimeoutException:
+		if retry_count < 2:
+			args = {
+				"retry_count": retry_count + 1,
+				"upload_db_backup": False,  # considering till worker timeout db backup is uploaded
+			}
+			enqueue(
+				"bench_manager.bench_manager.doctype.bench_settings.bench_settings.take_backup_to_dropbox",
+				queue="long",
+				timeout=1500,
+				**args
+			)
+	except Exception:
+		error_message = frappe.get_traceback()
+		send_email(False, "Dropbox", "Bench Settings", "send_notifications_to", error_message)
+
+
+@frappe.whitelist()
+def get_dropbox_authorize_url():
+	app_details = get_dropbox_settings(redirect_uri=True)
+	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
+		consumer_key=app_details["app_key"],
+		redirect_uri=app_details["redirect_uri"],
+		session={},
+		csrf_token_session_key="dropbox-auth-csrf-token",
+		consumer_secret=app_details["app_secret"],
+	)
+
+	auth_url = dropbox_oauth_flow.start()
+
+	return {"auth_url": auth_url, "args": parse_qs(urlparse(auth_url).query)}
+
+
+@frappe.whitelist()
+def get_redirect_url():
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = "https://dropbox.erpnext.com"
+	url = "{0}/api/method/dropbox_erpnext_broker.www.setup_dropbox.get_authotize_url".format(
+		frappe.conf.dropbox_broker_site
+	)
+
+	try:
+		response = make_post_request(url, data={"site": get_url()})
+		if response.get("message"):
+			return response["message"]
+
+	except Exception:
+		frappe.log_error()
+		frappe.throw(
+			_(
+				"Something went wrong while generating dropbox access token. Please check error log for more details."
+			)
+		)
+
+
+def backup_to_dropbox(site_list,upload_db_backup=True):
+	if not frappe.db:
+		frappe.connect()
+
+	# upload database
+	dropbox_settings = get_dropbox_settings()
+
+	if not dropbox_settings["access_token"]:
+		access_token = generate_oauth2_access_token_from_oauth1_token(dropbox_settings)
+
+		if not access_token.get("oauth2_token"):
+			return (
+				"Failed backup upload",
+				"No Access Token exists! Please generate the access token for Dropbox.",
+			)
+
+		dropbox_settings["access_token"] = access_token["oauth2_token"]
+		set_dropbox_access_token(access_token["oauth2_token"])
+
+	dropbox_client = dropbox.Dropbox(
+		oauth2_access_token=dropbox_settings["access_token"], timeout=None
+	)
+
+	if upload_db_backup:
+			if site_list:
+				create_backup(site_list)
+				sync_backups()
+				for i in site_list:
+					last_doc = frappe.get_list("Site Backup", filters={'site_name':i.name}, fields=['file_path'], order_by="creation desc",limit = 1)[0]
+					list_string = last_doc.file_path.split('/')
+					list_string.pop(0)
+					list_string.insert(0, '.')
+					string_list = ("/".join(list_string))
+					upload_file_to_dropbox(string_list+"-database.sql.gz", f"/{i.name}", dropbox_client)
+					upload_file_to_dropbox(string_list+"-site_config_backup.json", f"/{i.name}", dropbox_client)
+					upload_file_to_dropbox(string_list+"-private-files.tar", f"/{i.name}", dropbox_client)
+					upload_file_to_dropbox(string_list+"-files.tar", f"/{i.name}", dropbox_client)
+
+def upload_file_to_dropbox(filename, folder, dropbox_client):
+	"""upload files with chunk of 15 mb to reduce session append calls"""
+	if not os.path.exists(filename):
+		return
+
+	create_folder_if_not_exists(folder, dropbox_client)
+	file_size = os.path.getsize(encode(filename))
+	chunk_size = get_chunk_site(file_size)
+
+	mode = dropbox.files.WriteMode.overwrite
+
+	f = open(encode(filename), "rb")
+	path = "{0}/{1}".format(folder, os.path.basename(filename))
+
+	try:
+		if file_size <= chunk_size:
+			dropbox_client.files_upload(f.read(), path, mode)
+		else:
+			upload_session_start_result = dropbox_client.files_upload_session_start(f.read(chunk_size))
+			cursor = dropbox.files.UploadSessionCursor(
+				session_id=upload_session_start_result.session_id, offset=f.tell()
+			)
+			commit = dropbox.files.CommitInfo(path=path, mode=mode)
+
+			while f.tell() < file_size:
+				if (file_size - f.tell()) <= chunk_size:
+					dropbox_client.files_upload_session_finish(f.read(chunk_size), cursor, commit)
+				else:
+					dropbox_client.files_upload_session_append(
+						f.read(chunk_size), cursor.session_id, cursor.offset
+					)
+					cursor.offset = f.tell()
+	except dropbox.exceptions.ApiError as e:
+		if isinstance(e.error, dropbox.files.UploadError):
+			error = "File Path: {path}\n".format(path=path)
+			error += frappe.get_traceback()
+			frappe.log_error(error)
+		else:
+			raise
+
+
+def create_folder_if_not_exists(folder, dropbox_client):
+	try:
+		dropbox_client.files_get_metadata(folder)
+	except dropbox.exceptions.ApiError as e:
+		# folder not found
+		if isinstance(e.error, dropbox.files.GetMetadataError):
+			dropbox_client.files_create_folder(folder)
+		else:
+			raise
+
+
+def get_dropbox_settings(redirect_uri=False):
+	if not frappe.conf.dropbox_broker_site:
+		frappe.conf.dropbox_broker_site = "https://dropbox.erpnext.com"
+	settings = frappe.get_doc("Bench Settings")
+	app_details = {
+		"app_key": settings.app_access_key or frappe.conf.dropbox_access_key,
+		"app_secret": settings.get_password(fieldname="app_secret_key", raise_exception=False)
+		if settings.app_secret_key
+		else frappe.conf.dropbox_secret_key,
+		"access_token": settings.get_password("dropbox_access_token", raise_exception=False)
+		if settings.dropbox_access_token
+		else "",
+		"access_key": settings.get_password("dropbox_access_key", raise_exception=False),
+		"access_secret": settings.get_password("dropbox_access_secret", raise_exception=False),
+		"file_backup": settings.file_backup,
+	}
+
+	if redirect_uri:
+		app_details.update(
+			{
+				"redirect_uri": get_request_site_address(True)
+				+ "/api/method/bench_manager.bench_manager.doctype.bench_settings.bench_settings.dropbox_auth_finish"
+				if settings.app_secret_key
+				else frappe.conf.dropbox_broker_site
+				+ "/api/method/dropbox_erpnext_broker.www.setup_dropbox.generate_dropbox_access_token",
+			}
+		)
+
+	if not app_details["app_key"] or not app_details["app_secret"]:
+		raise Exception(_("Please set Dropbox access keys in your site config"))
+
+	return app_details
+
+
+@frappe.whitelist()
+def dropbox_auth_finish(return_access_token=False):
+	app_details = get_dropbox_settings(redirect_uri=True)
+	callback = frappe.form_dict
+	close = '<p class="text-muted">' + _("Please close this window") + "</p>"
+
+	dropbox_oauth_flow = dropbox.DropboxOAuth2Flow(
+		consumer_key=app_details["app_key"],
+		redirect_uri=app_details["redirect_uri"],
+		session={"dropbox-auth-csrf-token": callback.state},
+		csrf_token_session_key="dropbox-auth-csrf-token",
+		consumer_secret=app_details["app_secret"],
+	)
+
+	if callback.state or callback.code:
+		token = dropbox_oauth_flow.finish({"state": callback.state, "code": callback.code})
+		if return_access_token and token.access_token:
+			return token.access_token, callback.state
+
+		set_dropbox_access_token(token.access_token)
+	else:
+		frappe.respond_as_web_page(
+			_("Dropbox Setup"),
+			_("Illegal Access Token. Please try again") + close,
+			indicator_color="red",
+			http_status_code=frappe.AuthenticationError.http_status_code,
+		)
+
+	frappe.respond_as_web_page(
+		_("Dropbox Setup"), _("Dropbox access is approved!") + close, indicator_color="green"
+	)
+
+
+def set_dropbox_access_token(access_token):
+    frappe.db.set_value("Bench Settings", None, "dropbox_access_token", access_token)
+    frappe.db.commit()
+
+
+def generate_oauth2_access_token_from_oauth1_token(dropbox_settings=None):
+	if not dropbox_settings.get("access_key") or not dropbox_settings.get("access_secret"):
+		return {}
+
+	url = "https://api.dropboxapi.com/2/auth/token/from_oauth1"
+	headers = {"Content-Type": "application/json"}
+	auth = (dropbox_settings["app_key"], dropbox_settings["app_secret"])
+	data = {
+		"oauth1_token": dropbox_settings["access_key"],
+		"oauth1_token_secret": dropbox_settings["access_secret"],
+	}
+
+	return make_post_request(url, auth=auth, headers=headers, data=json.dumps(data))
