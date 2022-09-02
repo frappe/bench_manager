@@ -20,6 +20,7 @@
   "backup_settings_section",
   "auto_backup",
   "frequency",
+  "dropbox_backup",
   "other_settings",
   "maintenance_mode",
   "pause_scheduler",
@@ -224,15 +225,23 @@
    "label": "Auto Backup"
   },
   {
+   "depends_on": "eval:doc.auto_backup == 1",
    "fieldname": "frequency",
    "fieldtype": "Select",
    "label": "Frequency",
    "options": "\nDaily\nWeekly\nMonthly"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.auto_backup == 1",
+   "fieldname": "dropbox_backup",
+   "fieldtype": "Check",
+   "label": "Dropbox_backup"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-08-14 11:26:56.719389",
+ "modified": "2022-08-31 15:17:38.930879",
  "modified_by": "Administrator",
  "module": "Bench Manager",
  "name": "Site",

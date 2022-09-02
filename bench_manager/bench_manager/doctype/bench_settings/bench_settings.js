@@ -6,7 +6,7 @@ frappe.ui.form.on('Bench Settings', {
 		if (frm.doc.__islocal != 1) frm.save();
 		let site_config_fields = ["background_workers", "shallow_clone", "admin_password",
 			"auto_email_id", "auto_update", "frappe_user", "global_help_setup",
-			"dropbox_access_key", "dropbox_secret_key", "gunicorn_workers", "github_username",
+			"gunicorn_workers", "github_username",
 			"github_password", "mail_login", "mail_password", "mail_port", "mail_server",
 			"use_tls", "rebase_on_pull", "redis_cache", "redis_queue", "redis_socketio",
 			"restart_supervisor_on_update", "root_password", "serve_default_site",
@@ -122,6 +122,33 @@ frappe.ui.form.on('Bench Settings', {
 				  }
 			  });
 		  })
-		  });
+		});
+	},
+	allow_dropbox_access: function(frm) {
+		if (frm.doc.app_access_key && frm.doc.app_secret_key) {
+			frappe.call({
+				method: "bench_manager.bench_manager.doctype.bench_settings.bench_settings.get_dropbox_authorize_url",
+				freeze: true,
+				callback: function(r) {
+					if(!r.exc) {
+						window.open(r.message.auth_url);
+					}
+				}
+			})
+		}
+		else if (frm.doc.__onload && frm.doc.__onload.dropbox_setup_via_site_config) {
+			frappe.call({
+				method: "bench_manager.bench_manager.doctype.bench_settings.bench_settings.get_redirect_url",
+				freeze: true,
+				callback: function(r) {
+					if(!r.exc) {
+						window.open(r.message.auth_url);
+					}
+				}
+			})
+		}
+		else {
+			frappe.msgprint(__("Please enter values for App Access Key and App Secret Key"))
+		}
 	}
 });
