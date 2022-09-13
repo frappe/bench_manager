@@ -17,8 +17,7 @@ from bench_manager.bench_manager.utils import (
 	verify_whitelisted_call,
 )
 from frappe.model.document import Document
-
-
+from bench_manager.bench_manager.doctype.bench_settings.bench_settings import sync_sites
 class Site(Document):
 	site_config_fields = [
 		"maintenance_mode",
@@ -269,7 +268,7 @@ def verify_password(site_name, mysql_password):
 
 
 @frappe.whitelist()
-def create_site(site_name, install_erpnext, mysql_password, admin_password, key):
+def create_site(site_name, install_erpnext, mysql_password, admin_password, key, a_async=True):
 	verify_whitelisted_call()
 	commands = [
 		"bench new-site --mariadb-root-password {mysql_password} --admin-password {admin_password} --no-mariadb-socket {site_name}".format(
@@ -290,22 +289,15 @@ def create_site(site_name, install_erpnext, mysql_password, admin_password, key)
 		commands=commands,
 		doctype="Bench Settings",
 		key=key,
+		site_name = site_name,
+		is_async = a_async
 	)
-	all_sites = safe_decode(check_output("ls")).strip("\n").split("\n")
-	while site_name not in all_sites:
-		time.sleep(2)
-		print("waiting for site creation...")
-		all_sites = safe_decode(check_output("ls")).strip("\n").split("\n")
-	doc = frappe.get_doc(
-		{"doctype": "Site", "site_name": site_name, "app_list": "frappe", "developer_flag": 1}
-	)
-	doc.insert()
-	frappe.db.commit()
 
-def jop_site_creation(commands, doctype, key):
+def jop_site_creation(commands, doctype, key,site_name):
     from bench_manager.bench_manager.utils import run_command
     run_command(commands=commands,doctype="Bench Settings",key=key)
-    site = frappe.get_doc("Site",key)
+    sync_sites()
+    site = frappe.get_doc("Site",site_name)
     if site.developer_flag == 1:
             site.update_app_list()
     site.save()
