@@ -70,6 +70,11 @@
    "read_only": 1
   },
   {
+    "fieldname": "password_root1",
+    "fieldtype": "Data",
+    "label": "Password Root"
+   },
+  {
    "fieldname": "column_break_2",
    "fieldtype": "Column Break"
   },
